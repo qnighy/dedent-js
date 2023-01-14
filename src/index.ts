@@ -1,4 +1,7 @@
-/*
+import { cook } from "./cook.js";
+import { dedentRaw } from "./dedentRaw.js";
+import { evalTemplate } from "./evalTemplate.js";
+
 export type TemplateTag<S extends any[], T> =
   (template: TemplateStringsArray, ...substitutions: S) => T;
 
@@ -9,27 +12,28 @@ export function dedent(
 export function dedent<S extends any[], T>(
   innerTag: TemplateTag<S, T>
 ): TemplateTag<S, T>;
-export function dedent(
-  template1: any,
-  ...substitutions: any
-): any {
-  if (typeof template1 === "function") {
-    return dedentInner(template1);
+export function dedent<S extends any[], T>(
+  tag: TemplateStringsArray | TemplateTag<S, T>,
+  ...substitutions: unknown[]
+): string | TemplateTag<S, T> {
+  if (typeof tag === "string") {
+    throw new Error("Use dedent`...` instead of dedent(\"...\").");
+  } else if (Array.isArray(tag) && Array.isArray((tag as any).raw)) {
+    return dedentInner(evalTemplate)(tag as TemplateStringsArray, ...substitutions);
   } else {
-    return dedentInner(template)(template1, ...substitutions);
+    return dedentInner(tag as TemplateTag<S, T>)
   }
 }
 
 function dedentInner<S extends any[], T>(
   innerTag: TemplateTag<S, T>
 ): TemplateTag<S, T> {
+  return (template, ...substitutions) => innerTag(dedentTemplate(template), ...substitutions);
 }
-*/
 
-/*
 const dedentMap = new WeakMap<TemplateStringsArray, TemplateStringsArray>();
 
-export function dedentTemplate(
+function dedentTemplate(
   template: TemplateStringsArray
 ): TemplateStringsArray {
   {
@@ -46,5 +50,7 @@ export function dedentTemplate(
 function dedentTemplateImpl(
   template: TemplateStringsArray
 ): TemplateStringsArray {
+  const raw = Object.freeze(dedentRaw(template.raw));
+  const cooked = raw.map(cook);
+  return Object.freeze(Object.assign(cooked, { raw }));
 }
-*/
