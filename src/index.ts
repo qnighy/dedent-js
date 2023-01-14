@@ -5,10 +5,46 @@ import { evalTemplate } from "./evalTemplate.js";
 export type TemplateTag<S extends any[], T> =
   (template: TemplateStringsArray, ...substitutions: S) => T;
 
+/**
+ * Removes uniform indentations from the template literal.
+ *
+ * @example
+ *   ```typescript
+ *   const text = dedent`
+ *     foo
+ *       bar
+ *     baz
+ *   `;
+ *
+ *   // Equivalent to:
+ *   const text = `foo
+ *     bar
+ *   baz
+ *   `;
+ *   ```
+ */
 export function dedent(
   template: TemplateStringsArray,
   ...substitutions: unknown[]
 ): string;
+/**
+ * Removes uniform indentations from the tagged template literal.
+ *
+ * @example
+ *   ```typescript
+ *   const text = dedent(String.raw)`
+ *     foo
+ *       bar
+ *     baz
+ *   `;
+ *
+ *   // Equivalent to:
+ *   const text = String.raw`foo
+ *     bar
+ *   baz
+ *   `;
+ *   ```
+ */
 export function dedent<S extends any[], T>(
   innerTag: TemplateTag<S, T>
 ): TemplateTag<S, T>;
