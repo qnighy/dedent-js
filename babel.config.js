@@ -1,6 +1,7 @@
 const config = {
+  targets: "last 1 Chrome version",
   presets: [
-    "@babel/env",
+    ["@babel/env", { modules: false }],
     ["@babel/typescript", { allowDeclareFields: true }],
   ]
 };

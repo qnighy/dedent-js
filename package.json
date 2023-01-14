@@ -2,11 +2,19 @@
   "name": "@qnighy/dedent",
   "packageManager": "yarn@3.3.1",
   "type": "module",
+  "main": "./cjs/dist/index.js",
+  "exports": {
+    "require": "./cjs/dist/index.js",
+    "import": "./dist/index.js"
+  },
   "scripts": {
+    "build:babel": "babel -x .ts --ignore 'src/**/*.test.ts' -d dist src",
+    "build:babel:cjs": "babel -x .ts --ignore 'src/**/*.test.ts' --config-file ./babel.cjs.config.js -d cjs/dist src",
     "test": "NODE_OPTIONS='--experimental-vm-modules' yarn jest",
     "tsc": "tsc"
   },
   "devDependencies": {
+    "@babel/cli": "^7.20.7",
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-typescript": "^7.18.6",
