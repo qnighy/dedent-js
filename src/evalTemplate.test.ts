@@ -14,4 +14,7 @@ describe("template", () => {
   it("interprets escape", () => {
     expect(evalTemplate`a\nb`).toBe("a\nb");
   });
+  it("throws an error on invalid escape", () => {
+    expect(() => evalTemplate`a\7b`).toThrow(SyntaxError);
+  });
 });

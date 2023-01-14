@@ -1,3 +1,5 @@
+import { cook } from "./cook.js";
+
 /**
  * Cooked counterpart of {@link String.raw}.
  *
@@ -11,6 +13,13 @@ export function evalTemplate(
 ): string {
   let result = "";
   for (let nextIndex = 0; nextIndex < template.length; nextIndex++) {
+    if (template[nextIndex] == null) {
+      if (Array.isArray((template as TemplateStringsArray).raw)) {
+        // Try to produce a better error message
+        cook((template as TemplateStringsArray).raw[nextIndex]!);
+      }
+      throw new SyntaxError("Invalid escape in the template");
+    }
     result += template[nextIndex];
     if (nextIndex < substitutions.length) {
       result += toString(substitutions[nextIndex]);
