@@ -32,6 +32,10 @@ describe("dedent", () => {
     `).toBe("\\x20 foo\n  bar\n  baz\n");
   });
 
+  it("Allows invalid escapes when tagged", () => {
+    expect(dedent(String.raw)`\9`).toBe("\\9");
+  });
+
   it("keeps template object identity", () => {
     const getObj = () => dedent((t, ..._sub: unknown[]) => t)`  foo${1}`;
     const getObj2 = () => dedent((t, ..._sub: unknown[]) => t)`  foo${1}`;

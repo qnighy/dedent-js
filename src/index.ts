@@ -87,6 +87,16 @@ function dedentTemplateImpl(
   template: TemplateStringsArray
 ): TemplateStringsArray {
   const raw = Object.freeze(dedentRaw(template.raw));
-  const cooked = raw.map(cook);
+  const cooked = raw.map((elem) => {
+    let c = undefined;
+    try {
+      c = cook(elem);
+    } catch (e) {
+      if (!(e instanceof SyntaxError)) {
+        throw e;
+      }
+    }
+    return c;
+  }) as string[];
   return Object.freeze(Object.assign(cooked, { raw }));
 }
