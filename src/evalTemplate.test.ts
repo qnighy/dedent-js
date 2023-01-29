@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 import { evalTemplate } from "./evalTemplate.js";
 
-describe("template", () => {
+describe("evalTemplate", () => {
   it("interpolates a string", () => {
     expect(evalTemplate`abc${"def"}ghi`).toBe("abcdefghi");
   });
@@ -16,5 +16,8 @@ describe("template", () => {
   });
   it("throws an error on invalid escape", () => {
     expect(() => evalTemplate`a\7b`).toThrow(SyntaxError);
+  });
+  it("throws a fallback error on invalid escape if raw is not given", () => {
+    expect(() => evalTemplate([undefined] as any)).toThrow("Invalid escape in the template");
   });
 });

@@ -92,6 +92,7 @@ function dedentTemplateImpl(
     try {
       c = cook(elem);
     } catch (e) {
+      /* istanbul ignore if -- no other error is expected */
       if (!(e instanceof SyntaxError)) {
         throw e;
       }
