@@ -44,5 +44,6 @@ const config = {
       },
     },
   ],
+  ignorePatterns: ["cjs/dist/**/*", "dist/**/*"],
 };
 module.exports = config;

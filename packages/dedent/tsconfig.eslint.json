@@ -3,5 +3,11 @@
   "compilerOptions": {
     "allowJs": true
   },
-  "include": ["src/**/*.ts", ".eslintrc.cjs", "babel.config.js", "babel.cjs.config.js", "babel-config.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    ".eslintrc.cjs",
+    "babel.config.js",
+    "babel.cjs.config.js",
+    "babel-config.d.ts"
+  ]
 }

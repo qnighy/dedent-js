@@ -13,9 +13,9 @@
     "build:babel": "babel -x .ts --ignore 'src/**/*.test.ts' -d dist src",
     "build:babel:cjs": "babel -x .ts --ignore 'src/**/*.test.ts' --config-file ./babel.cjs.config.js -d cjs/dist src",
     "build:tsc": "tsc --project ./tsconfig.main.json",
-    "fmt": "prettier -w src/**/*.ts *.js .*.cjs",
-    "fmt:check": "yarn fmt -c",
-    "lint": "eslint src/**/*.ts *.js .*.cjs",
+    "fmt": "prettier -w .",
+    "fmt:check": "prettier -c .",
+    "lint": "eslint .",
     "test": "NODE_OPTIONS='--experimental-vm-modules' yarn jest",
     "tsc": "tsc --build"
   },
