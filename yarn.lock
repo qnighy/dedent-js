@@ -1731,9 +1731,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@qnighy/dedent@workspace:.":
+"@qnighy/dedent@workspace:packages/dedent":
   version: 0.0.0-use.local
-  resolution: "@qnighy/dedent@workspace:."
+  resolution: "@qnighy/dedent@workspace:packages/dedent"
   dependencies:
     "@babel/cli": ^7.20.7
     "@babel/core": ^7.20.12
@@ -1741,7 +1741,6 @@ __metadata:
     "@babel/preset-typescript": ^7.18.6
     "@jest/globals": ^29.3.1
     "@types/babel__core": ^7.1.20
-    "@yarnpkg/sdks": ^3.0.0-rc.34
     babel-jest: ^29.3.1
     jest: ^29.3.1
     ts-jest-resolver: ^2.0.0
@@ -4778,6 +4777,15 @@ __metadata:
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
   languageName: node
   linkType: hard
+
+"root@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "root@workspace:."
+  dependencies:
+    "@yarnpkg/sdks": ^3.0.0-rc.34
+    typescript: ^4.9.4
+  languageName: unknown
+  linkType: soft
 
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
