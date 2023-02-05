@@ -2,6 +2,9 @@ import { cook } from "./cook.js";
 import { dedentRaw } from "./dedentRaw.js";
 import { evalTemplate } from "./evalTemplate.js";
 
+export { cook } from "./cook.js";
+export { dedentRaw } from "./dedentRaw.js";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TemplateTag<S extends any[], T> = (
   template: TemplateStringsArray,

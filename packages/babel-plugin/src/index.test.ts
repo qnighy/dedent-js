@@ -15,19 +15,20 @@ describe("@qnighy/babel-plugin-dedent", () => {
     }
     return result.code ?? "";
   }
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip("transforms dedent calls", async () => {
+  it("transforms dedent calls", async () => {
     const input = dedent`
+      import { dedent } from "@qnighy/dedent";
       const text = dedent\`
         foo
         bar
       \`;
     `;
+    // TODO: remove imports
     const output = dedent`
+      import { dedent } from "@qnighy/dedent";
       const text = \`foo
       bar
-      \`;
-    `;
+      \`;`;
     expect(await transform(input)).toBe(output);
   });
 });
