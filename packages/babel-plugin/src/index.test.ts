@@ -31,4 +31,20 @@ describe("@qnighy/babel-plugin-dedent", () => {
       \`;`;
     expect(await transform(input)).toBe(output);
   });
+  it("transforms wrapping dedent calls", async () => {
+    const input = dedent`
+      import { dedent } from "@qnighy/dedent";
+      const text = dedent(foo)\`
+        foo
+        bar
+      \`;
+    `;
+    // TODO: remove imports
+    const output = dedent`
+      import { dedent } from "@qnighy/dedent";
+      const text = foo\`foo
+      bar
+      \`;`;
+    expect(await transform(input)).toBe(output);
+  });
 });
