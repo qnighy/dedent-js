@@ -57,18 +57,29 @@ describe("dedentRaw", () => {
     expect(dedentRaw(["foo\n    bar\n  baz"])).toEqual(["foo\n  bar\nbaz"]);
   });
   it("truncates short empty line in the middle", () => {
-    expect(dedentRaw(["foo\n \n  bar\n    baz"])).toEqual(["foo\n\nbar\n  baz"]);
+    expect(dedentRaw(["foo\n \n  bar\n    baz"])).toEqual([
+      "foo\n\nbar\n  baz",
+    ]);
   });
   it("truncates short empty line in the last", () => {
-    expect(dedentRaw(["foo\n  bar\n    baz\n "])).toEqual(["foo\nbar\n  baz\n"]);
+    expect(dedentRaw(["foo\n  bar\n    baz\n "])).toEqual([
+      "foo\nbar\n  baz\n",
+    ]);
   });
   it("regards substitution as a content", () => {
-    expect(dedentRaw(["foo\n ", "\n  bar\n    baz"])).toEqual(["foo\n", "\n bar\n   baz"]);
+    expect(dedentRaw(["foo\n ", "\n  bar\n    baz"])).toEqual([
+      "foo\n",
+      "\n bar\n   baz",
+    ]);
   });
   it("dedents long empty line", () => {
-    expect(dedentRaw(["foo\n   \n  bar\n    baz"])).toEqual(["foo\n \nbar\n  baz"]);
+    expect(dedentRaw(["foo\n   \n  bar\n    baz"])).toEqual([
+      "foo\n \nbar\n  baz",
+    ]);
   });
   it("dedents the second line and later at Infinity if they are all empty", () => {
-    expect(dedentRaw(["x\n  \u2028\t\n   \u2029\t\t"])).toEqual(["x\n\u2028\n\u2029"]);
+    expect(dedentRaw(["x\n  \u2028\t\n   \u2029\t\t"])).toEqual([
+      "x\n\u2028\n\u2029",
+    ]);
   });
 });

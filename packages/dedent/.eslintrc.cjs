@@ -17,14 +17,20 @@ const config = {
   reportUnusedDisableDirectives: true,
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", {
-      varsIgnorePattern: "^_",
-      argsIgnorePattern: "^_",
-      caughtErrorsIgnorePattern: "^_",
-    }],
-    "no-constant-condition": ["error", {
-      checkLoops: false,
-    }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        varsIgnorePattern: "^_",
+        argsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
+    "no-constant-condition": [
+      "error",
+      {
+        checkLoops: false,
+      },
+    ],
     "node/no-unsupported-features/es-syntax": "off",
     // Specifying *.js for *.ts doesn't work now
     "node/no-missing-import": "off",

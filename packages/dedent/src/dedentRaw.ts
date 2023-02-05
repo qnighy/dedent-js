@@ -11,17 +11,23 @@ export function dedentRaw(raw: readonly string[]): string[] {
       }
       const endPos = m.index + m[0].length;
       const len = m[1]!.length;
-      const hasContent = elem[endPos] != null ?
-        // There is a character in the line
-        !/[\n\u2028\u2029]/.test(elem[endPos]!) :
-        // There is a substitution
-        i + 1 < raw.length;
+      const hasContent =
+        elem[endPos] != null
+          ? // There is a character in the line
+            !/[\n\u2028\u2029]/.test(elem[endPos]!)
+          : // There is a substitution
+            i + 1 < raw.length;
       if (hasContent) {
         level = Math.min(level, len);
       }
     }
   }
-  const dedented = raw.map((elem) => elem.replace(/([\n\u2028\u2029])([ \t]*)/g, (text, nl: string, head: string) => nl + head.substring(level)));
+  const dedented = raw.map((elem) =>
+    elem.replace(
+      /([\n\u2028\u2029])([ \t]*)/g,
+      (text, nl: string, head: string) => nl + head.substring(level)
+    )
+  );
 
   // Dedent the first line and remove it if it is empty
   // First line indentation is independent of the later lines.

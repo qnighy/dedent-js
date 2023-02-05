@@ -6,6 +6,6 @@ const config = {
   presets: [
     ["@babel/env", { modules: false }],
     ["@babel/typescript", { allowDeclareFields: true }],
-  ]
+  ],
 };
 export { config as default };

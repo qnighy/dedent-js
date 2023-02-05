@@ -18,6 +18,8 @@ describe("evalTemplate", () => {
     expect(() => evalTemplate`a\7b`).toThrow(SyntaxError);
   });
   it("throws a fallback error on invalid escape if raw is not given", () => {
-    expect(() => evalTemplate([undefined] as unknown as string[])).toThrow("Invalid escape in the template");
+    expect(() => evalTemplate([undefined] as unknown as string[])).toThrow(
+      "Invalid escape in the template"
+    );
   });
 });

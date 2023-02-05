@@ -44,11 +44,13 @@ describe("dedent", () => {
   });
 
   it("gives a helpful message if used as a function", () => {
-    const dedentWrong = dedent as (typeof dedent & ((s: string) => string));
-    expect(() => dedentWrong(`
-      foo
-        bar
-      baz
-    `)).toThrow("Use dedent`...` instead of dedent(\"...\").");
+    const dedentWrong = dedent as typeof dedent & ((s: string) => string);
+    expect(() =>
+      dedentWrong(`
+        foo
+          bar
+        baz
+      `)
+    ).toThrow('Use dedent`...` instead of dedent("...").');
   });
 });

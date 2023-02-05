@@ -3,17 +3,20 @@ import { describe, expect, test } from "@jest/globals";
 import { cook } from "./cook.js";
 
 describe("cook", () => {
-  test.each<{
-    name: string;
-    input: string;
-    output: string;
-    error?: never;
-  } | {
-    name: string;
-    input: string;
-    output?: never;
-    error: string;
-  }>([
+  test.each<
+    | {
+        name: string;
+        input: string;
+        output: string;
+        error?: never;
+      }
+    | {
+        name: string;
+        input: string;
+        output?: never;
+        error: string;
+      }
+  >([
     {
       name: "keeps plain text",
       input: "foo",
