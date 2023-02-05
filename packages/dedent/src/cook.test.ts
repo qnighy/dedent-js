@@ -1,4 +1,5 @@
-import { describe, expect, it, test } from "@jest/globals";
+/* eslint-disable jest/no-conditional-expect */
+import { describe, expect, test } from "@jest/globals";
 import { cook } from "./cook.js";
 
 describe("cook", () => {
@@ -129,11 +130,13 @@ describe("cook", () => {
       expect(() => cook(input)).toThrow(SyntaxError);
 
       // Ensure the same behavior
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-return
       expect(() => Function(`return \`${input}\`;`)()).toThrow(SyntaxError);
     } else {
       expect(cook(input)).toBe(output);
 
       // Ensure the same behavior
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
       expect(Function(`return \`${input}\`;`)()).toBe(output);
     }
   });

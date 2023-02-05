@@ -4,5 +4,5 @@
     "allowJs": true
   },
   "references": [{ "path": "./tsconfig.main.json" }],
-  "include": ["src/**/*.test.ts", "babel.config.js", "babel.cjs.config.js", "babel-config.d.ts"]
+  "include": ["src/**/*.test.ts", ".eslintrc.cjs", "babel.config.js", "babel.cjs.config.js", "babel-config.d.ts"]
 }

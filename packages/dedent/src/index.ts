@@ -2,6 +2,7 @@ import { cook } from "./cook.js";
 import { dedentRaw } from "./dedentRaw.js";
 import { evalTemplate } from "./evalTemplate.js";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TemplateTag<S extends any[], T> =
   (template: TemplateStringsArray, ...substitutions: S) => T;
 
@@ -45,22 +46,25 @@ export function dedent(
  *   `;
  *   ```
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function dedent<S extends any[], T>(
   innerTag: TemplateTag<S, T>
 ): TemplateTag<S, T>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function dedent<S extends any[], T>(
   tag: TemplateStringsArray | TemplateTag<S, T>,
   ...substitutions: unknown[]
 ): string | TemplateTag<S, T> {
   if (typeof tag === "string") {
     throw new Error("Use dedent`...` instead of dedent(\"...\").");
-  } else if (Array.isArray(tag) && Array.isArray((tag as any).raw)) {
+  } else if (Array.isArray(tag) && Array.isArray((tag as TemplateStringsArray).raw)) {
     return dedentInner(evalTemplate)(tag as TemplateStringsArray, ...substitutions);
   } else {
     return dedentInner(tag as TemplateTag<S, T>)
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dedentInner<S extends any[], T>(
   innerTag: TemplateTag<S, T>
 ): TemplateTag<S, T> {
