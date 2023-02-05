@@ -120,6 +120,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/helper-check-duplicate-nodes@npm:^7.18.6":
+  version: 7.18.6
+  resolution: "@babel/helper-check-duplicate-nodes@npm:7.18.6"
+  dependencies:
+    "@babel/types": ^7.18.6
+  checksum: 3ca874b420b4edc3e5f55ee2d7596d72c303bcab2eb2cb0c7733e0960bf90c0453dcb861d84abc7870dbb7b511a880d06554c7fca5aba0cdb6f737d27e35caa8
+  languageName: node
+  linkType: hard
+
 "@babel/helper-compilation-targets@npm:^7.17.7, @babel/helper-compilation-targets@npm:^7.18.9, @babel/helper-compilation-targets@npm:^7.20.0, @babel/helper-compilation-targets@npm:^7.20.7":
   version: 7.20.7
   resolution: "@babel/helper-compilation-targets@npm:7.20.7"
@@ -197,6 +206,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/helper-fixtures@npm:^7.19.4":
+  version: 7.19.4
+  resolution: "@babel/helper-fixtures@npm:7.19.4"
+  dependencies:
+    semver: ^6.3.0
+  checksum: ccf26e861f342b69dbb7fd2411b0fd3323f67ae803dbbc83bf7a17ff4e16bb9a1b8036fd0a25bf9998b1e786facd6763de86425348af9e6f42ebfdf209a9d380
+  languageName: node
+  linkType: hard
+
 "@babel/helper-function-name@npm:^7.18.9, @babel/helper-function-name@npm:^7.19.0":
   version: 7.19.0
   resolution: "@babel/helper-function-name@npm:7.19.0"
@@ -256,6 +274,15 @@ __metadata:
   dependencies:
     "@babel/types": ^7.18.6
   checksum: e518fe8418571405e21644cfb39cf694f30b6c47b10b006609a92469ae8b8775cbff56f0b19732343e2ea910641091c5a2dc73b56ceba04e116a33b0f8bd2fbd
+  languageName: node
+  linkType: hard
+
+"@babel/helper-plugin-test-runner@npm:^7.18.6":
+  version: 7.18.6
+  resolution: "@babel/helper-plugin-test-runner@npm:7.18.6"
+  dependencies:
+    "@babel/helper-transform-fixture-test-runner": ^7.18.6
+  checksum: cf3e2a448605cb5450a5c7c7438c06e38cb1667b9a9cdf421fbb5e0eb292559a27110420c60fb6a0e1b80bf2f3e060075222a61b133503c888af2bc2f84dc4de
   languageName: node
   linkType: hard
 
@@ -325,6 +352,19 @@ __metadata:
   version: 7.19.4
   resolution: "@babel/helper-string-parser@npm:7.19.4"
   checksum: b2f8a3920b30dfac81ec282ac4ad9598ea170648f8254b10f475abe6d944808fb006aab325d3eb5a8ad3bea8dfa888cfa6ef471050dae5748497c110ec060943
+  languageName: node
+  linkType: hard
+
+"@babel/helper-transform-fixture-test-runner@npm:^7.18.6":
+  version: 7.20.14
+  resolution: "@babel/helper-transform-fixture-test-runner@npm:7.20.14"
+  dependencies:
+    "@babel/code-frame": ^7.18.6
+    "@babel/core": ^7.20.12
+    "@babel/helper-check-duplicate-nodes": ^7.18.6
+    "@babel/helper-fixtures": ^7.19.4
+    quick-lru: 5.1.0
+  checksum: 060ade6d49f455f923945024fa52f00978d2d4da9f07410b3e11475cacb61dac227691a40fde2c0ba3461552d5c9cf0ee47b8c6cec7cf7aeb9ba465af4579ab5
   languageName: node
   linkType: hard
 
@@ -1773,7 +1813,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@qnighy/dedent@workspace:packages/dedent":
+"@qnighy/babel-plugin-dedent@workspace:packages/babel-plugin":
+  version: 0.0.0-use.local
+  resolution: "@qnighy/babel-plugin-dedent@workspace:packages/babel-plugin"
+  dependencies:
+    "@babel/cli": ^7.20.7
+    "@babel/core": ^7.20.12
+    "@babel/helper-plugin-test-runner": ^7.18.6
+    "@babel/preset-env": ^7.20.2
+    "@babel/preset-typescript": ^7.18.6
+    "@jest/globals": ^29.3.1
+    "@qnighy/dedent": "workspace:^0.1.0"
+    "@types/babel__core": ^7.1.20
+    "@types/eslint": ^8.21.0
+    "@types/node": ^18.11.19
+    "@typescript-eslint/eslint-plugin": ^5.50.0
+    "@typescript-eslint/parser": ^5.50.0
+    "@typescript-eslint/utils": ^5.50.0
+    babel-jest: ^29.3.1
+    eslint: ^8.33.0
+    eslint-config-prettier: ^8.6.0
+    eslint-plugin-jest: ^27.2.1
+    eslint-plugin-node: ^11.1.0
+    jest: ^29.3.1
+    prettier: ^2.8.3
+    ts-jest-resolver: ^2.0.0
+    typescript: ^4.9.4
+  peerDependencies:
+    "@babel/core": ^7.20.12
+  languageName: unknown
+  linkType: soft
+
+"@qnighy/dedent@workspace:^0.1.0, @qnighy/dedent@workspace:packages/dedent":
   version: 0.0.0-use.local
   resolution: "@qnighy/dedent@workspace:packages/dedent"
   dependencies:
@@ -5251,6 +5322,13 @@ __metadata:
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: b676f8c040cdc5b12723ad2f91414d267605b26419d5c821ff03befa817ddd10e238d22b25d604920340fd73efd8ba795465a0377c4adf45a4a41e4234e42dc4
+  languageName: node
+  linkType: hard
+
+"quick-lru@npm:5.1.0":
+  version: 5.1.0
+  resolution: "quick-lru@npm:5.1.0"
+  checksum: 48e42823990a274764f611800debe3024d93685039b2becbbe824f7841658e13462b1138ab72d664de1754f0636761b607e6b5b392cc286b8322ee563c5ed33b
   languageName: node
   linkType: hard
 

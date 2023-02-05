@@ -1,5 +1,5 @@
 {
-  "name": "@qnighy/dedent",
+  "name": "@qnighy/babel-plugin-dedent",
   "version": "0.1.0",
   "type": "module",
   "main": "./cjs/dist/index.js",
@@ -20,9 +20,16 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' yarn jest",
     "tsc": "tsc --build"
   },
+  "dependencies": {
+    "@qnighy/dedent": "workspace:^0.1.0"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.20.12"
+  },
   "devDependencies": {
     "@babel/cli": "^7.20.7",
     "@babel/core": "^7.20.12",
+    "@babel/helper-plugin-test-runner": "^7.18.6",
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-typescript": "^7.18.6",
     "@jest/globals": "^29.3.1",
