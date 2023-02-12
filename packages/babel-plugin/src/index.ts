@@ -18,6 +18,7 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
       TaggedTemplateExpression(path) {
         const tag = path.get("tag");
         if (isDedentFn(tag)) {
+          // Case 1: dedent`...`
           const raws = dedentRaw(
             path.node.quasi.quasis.map((q) => q.value.raw)
           );
@@ -40,6 +41,7 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
         } else if (tag.isCallExpression()) {
           const callee = tag.get("callee");
           if (isDedentFn(callee)) {
+            // Case 2: dedent(innerTag)`...`
             const innerTag = firstArg(
               tag.node.arguments as (Expression | SpreadElement)[]
             );
@@ -68,10 +70,18 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
     },
   };
 
+  /**
+   * Does the expression reference the `dedent` function?
+   */
   function isDedentFn(
     expr: NodePath<V8IntrinsicIdentifier | Expression>
   ): boolean {
     if (expr.isIdentifier()) {
+      // Check for:
+      // ```js
+      // import { dedent } from "@qnighy/dedent";
+      // dedent`...`;
+      // ```
       const binding = expr.scope.getBinding(expr.node.name);
       if (!binding) {
         return false;
@@ -86,6 +96,12 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
       }
       return false;
     } else if (expr.isMemberExpression()) {
+      // Check for:
+      // ```js
+      // import * as m from "@qnighy/dedent";
+      // m.dedent`...`;
+      // ```
+
       // TODO
       return false;
     }
@@ -110,8 +126,12 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
 
 function importName(imported: Identifier | StringLiteral): string {
   if (imported.type === "StringLiteral") {
+    // import { "foo" as bar } from "";
+    //          ^^^^^
     return imported.value;
   } else {
+    // import { foo as bar } from "";
+    //          ^^^
     return imported.name;
   }
 }
