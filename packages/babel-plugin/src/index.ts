@@ -26,14 +26,12 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
             try {
               path.node.quasi.quasis[i]!.value.cooked = cook(raw);
             } catch (e) {
-              if (e instanceof SyntaxError) {
-                // Invalid escape in non-tagged literal ... should be an error
-                throw path
-                  .get("quasi")
-                  .get("quasis")
-                  [i]!.buildCodeFrameError(e.message, SyntaxError);
-              }
-              throw e;
+              rethrowUnless(e, SyntaxError);
+              // Invalid escape in non-tagged literal ... should be an error
+              throw path
+                .get("quasi")
+                .get("quasis")
+                [i]!.buildCodeFrameError(e.message, SyntaxError);
             }
           });
           path.replaceWith(path.node.quasi);
@@ -59,14 +57,11 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
               try {
                 path.node.quasi.quasis[i]!.value.cooked = cook(raw);
               } catch (e) {
-                if (e instanceof SyntaxError) {
-                  // Invalid escape in tagged literal ... should fall back to undefined
-                  path.node.quasi.quasis[i]!.value.cooked = undefined as
-                    | string
-                    | undefined as string;
-                } else {
-                  throw e;
-                }
+                rethrowUnless(e, SyntaxError);
+                // Invalid escape in tagged literal ... should fall back to undefined
+                path.node.quasi.quasis[i]!.value.cooked = undefined as
+                  | string
+                  | undefined as string;
               }
             });
             tag.replaceWith(innerTag);
@@ -124,5 +119,13 @@ function importName(imported: Identifier | StringLiteral): string {
     // import { foo as bar } from "";
     //          ^^^
     return imported.name;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rethrowUnless<T>(e: unknown, klass: new (...args: any[]) => T): asserts e is T {
+  /* istanbul ignore if -- should be handled on the caller */
+  if (!(e instanceof klass)) {
+    throw e;
   }
 }
