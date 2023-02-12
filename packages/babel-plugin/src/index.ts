@@ -2,7 +2,6 @@ import type {
   Expression,
   Identifier,
   ImportDeclaration,
-  SpreadElement,
   StringLiteral,
   V8IntrinsicIdentifier,
   // eslint-disable-next-line node/no-unpublished-import
@@ -42,9 +41,16 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
           const callee = tag.get("callee");
           if (isDedentFn(callee)) {
             // Case 2: dedent(innerTag)`...`
-            const innerTag = firstArg(
-              tag.node.arguments as (Expression | SpreadElement)[]
-            );
+
+            // Check against complex arguments
+            if (tag.node.arguments.length !== 1) {
+              return;
+            }
+            const innerTag = tag.node.arguments[0]!;
+            if (!t.isExpression(innerTag)) {
+              return;
+            }
+
             const raws = dedentRaw(
               path.node.quasi.quasis.map((q) => q.value.raw)
             );
@@ -106,21 +112,6 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
       return false;
     }
     return false;
-  }
-
-  function firstArg(args: (Expression | SpreadElement)[]): Expression {
-    if (args.length === 1 && t.isExpression(args[0])) {
-      // dedent(expr) -> expr
-      return args[0]!;
-    }
-    // Rare case:
-    // dedent(foo, bar) -> [foo, bar][0]
-    // to easily keep evaluation order and account for spread elements
-    return t.memberExpression(
-      t.arrayExpression(args),
-      t.numericLiteral(0),
-      true
-    );
   }
 }
 
