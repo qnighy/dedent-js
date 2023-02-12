@@ -64,7 +64,7 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
                   | undefined as string;
               }
             });
-            tag.replaceWith(innerTag);
+            tag.replaceWith(asValue(innerTag));
           }
         }
       },
@@ -107,6 +107,13 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
       return false;
     }
     return false;
+  }
+
+  function asValue(e: Expression): Expression {
+    if (t.isMemberExpression(e) || t.isOptionalMemberExpression(e)) {
+      return t.sequenceExpression([t.numericLiteral(0), e]);
+    }
+    return e;
   }
 }
 

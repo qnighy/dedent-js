@@ -251,4 +251,22 @@ describe("@qnighy/babel-plugin-dedent", () => {
       expect(await transform(input)).toBe(output);
     });
   });
+
+  describe("wrapped functions this-binding", () => {
+    it("transforms MemberExpression with asValue wrapper", async () => {
+      const input = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text = dedent(foo.bar)\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text = (0, foo.bar)\`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+  });
 });
