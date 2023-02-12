@@ -123,7 +123,10 @@ function importName(imported: Identifier | StringLiteral): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rethrowUnless<T>(e: unknown, klass: new (...args: any[]) => T): asserts e is T {
+function rethrowUnless<T>(
+  e: unknown,
+  klass: new (...args: any[]) => T
+): asserts e is T {
   /* istanbul ignore if -- should be handled on the caller */
   if (!(e instanceof klass)) {
     throw e;

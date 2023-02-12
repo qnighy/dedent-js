@@ -174,9 +174,13 @@ describe("@qnighy/babel-plugin-dedent", () => {
           bar\\9
         \`;
       `;
-      await expect(transform(input)).rejects.toEqual(expect.objectContaining({
-        message: expect.stringMatching(/\\8 and \\9 are not allowed in template strings./),
-      }));
+      await expect(transform(input)).rejects.toEqual(
+        expect.objectContaining({
+          message: expect.stringMatching(
+            /\\8 and \\9 are not allowed in template strings./
+          ),
+        })
+      );
     });
     it("transforms the code successfully even if there is an invalid escape in the wrapper form", async () => {
       const input = dedent`
