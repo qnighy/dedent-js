@@ -122,9 +122,9 @@ function importName(imported: Identifier | StringLiteral): string {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rethrowUnless<T>(
   e: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   klass: new (...args: any[]) => T
 ): asserts e is T {
   /* istanbul ignore if -- should be handled on the caller */
