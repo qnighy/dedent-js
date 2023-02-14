@@ -9,14 +9,22 @@
     "require": "./cjs/dist/index.js",
     "import": "./dist/index.js"
   },
+  "files": [
+    "src/**/*",
+    "dist/**/*",
+    "cjs/dist/**/*",
+    "!*.test.ts",
+    "!*.tsbuildinfo"
+  ],
   "scripts": {
-    "build": "yarn build:babel && yarn build:babel:cjs && yarn build:tsc",
+    "build": "$npm_execpath build:babel && $npm_execpath build:babel:cjs && $npm_execpath build:tsc",
     "build:babel": "babel -x .ts --ignore 'src/**/*.test.ts' -d dist src",
     "build:babel:cjs": "babel -x .ts --ignore 'src/**/*.test.ts' --config-file ./babel.cjs.config.js -d cjs/dist src",
     "build:tsc": "tsc --project ./tsconfig.main.json",
     "fmt": "prettier -w .",
     "fmt:check": "prettier -c .",
     "lint": "eslint .",
+    "prepack": "$npm_execpath build",
     "test": "NODE_OPTIONS='--experimental-vm-modules' yarn jest",
     "tsc": "tsc --build"
   },
