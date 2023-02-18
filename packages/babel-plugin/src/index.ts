@@ -65,71 +65,75 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
                   | undefined as string;
               }
             });
-            tag.replaceWith(asValue(innerTag));
+            tag.replaceWith(asValue(babel, innerTag));
           }
         }
       },
     },
   };
+}
 
-  /**
-   * Does the expression reference the `dedent` function?
-   */
-  function isDedentFn(
-    expr: NodePath<V8IntrinsicIdentifier | Expression>
-  ): boolean {
-    if (expr.isIdentifier()) {
-      // Check for:
-      // ```js
-      // import { dedent } from "@qnighy/dedent";
-      // dedent`...`;
-      // ```
-      const binding = expr.scope.getBinding(expr.node.name);
-      if (!binding) {
-        return false;
-      }
-      const ref = binding.path;
-      if (
-        ref.isImportSpecifier() &&
-        importName(ref.node.imported) === "dedent" &&
-        (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
-      ) {
-        return true;
-      }
+/**
+ * Does the expression reference the `dedent` function?
+ */
+function isDedentFn(
+  expr: NodePath<V8IntrinsicIdentifier | Expression>
+): boolean {
+  if (expr.isIdentifier()) {
+    // Check for:
+    // ```js
+    // import { dedent } from "@qnighy/dedent";
+    // dedent`...`;
+    // ```
+    const binding = expr.scope.getBinding(expr.node.name);
+    if (!binding) {
       return false;
-    } else if (expr.isMemberExpression()) {
-      // Check for:
-      // ```js
-      // import * as m from "@qnighy/dedent";
-      // m.dedent`...`;
-      // ```
-      const ns = expr.get("object");
-      if (!ns.isIdentifier()) {
-        return false;
-      }
-      const binding = ns.scope.getBinding(ns.node.name);
-      if (!binding) {
-        return false;
-      }
-      const ref = binding.path;
-      if (
-        ref.isImportNamespaceSpecifier() &&
-        memberName(expr.node) === "dedent" &&
-        (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
-      ) {
-        return true;
-      }
+    }
+    const ref = binding.path;
+    if (
+      ref.isImportSpecifier() &&
+      importName(ref.node.imported) === "dedent" &&
+      (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
+    ) {
+      return true;
+    }
+    return false;
+  } else if (expr.isMemberExpression()) {
+    // Check for:
+    // ```js
+    // import * as m from "@qnighy/dedent";
+    // m.dedent`...`;
+    // ```
+    const ns = expr.get("object");
+    if (!ns.isIdentifier()) {
       return false;
+    }
+    const binding = ns.scope.getBinding(ns.node.name);
+    if (!binding) {
+      return false;
+    }
+    const ref = binding.path;
+    if (
+      ref.isImportNamespaceSpecifier() &&
+      memberName(expr.node) === "dedent" &&
+      (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
+    ) {
+      return true;
     }
     return false;
   }
+  return false;
+}
 
-  function asValue(e: Expression): Expression {
-    if (t.isMemberExpression(e) || t.isOptionalMemberExpression(e)) {
-      return t.sequenceExpression([t.numericLiteral(0), e]);
-    }
-    return e;
+function asValue(
+  babel: typeof import("@babel/core"),
+  e: Expression
+): Expression {
+  const { types: t } = babel;
+  if (t.isMemberExpression(e) || t.isOptionalMemberExpression(e)) {
+    return t.sequenceExpression([t.numericLiteral(0), e]);
   }
+  return e;
 }
 
 function importName(imported: Identifier | StringLiteral): string {
