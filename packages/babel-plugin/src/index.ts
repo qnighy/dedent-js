@@ -2,6 +2,7 @@ import type {
   Expression,
   Identifier,
   ImportDeclaration,
+  MemberExpression,
   StringLiteral,
   V8IntrinsicIdentifier,
   // eslint-disable-next-line node/no-unpublished-import
@@ -102,8 +103,22 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
       // import * as m from "@qnighy/dedent";
       // m.dedent`...`;
       // ```
-
-      // TODO
+      const ns = expr.get("object");
+      if (!ns.isIdentifier()) {
+        return false;
+      }
+      const binding = ns.scope.getBinding(ns.node.name);
+      if (!binding) {
+        return false;
+      }
+      const ref = binding.path;
+      if (
+        ref.isImportNamespaceSpecifier() &&
+        memberName(expr.node) === "dedent" &&
+        (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
+      ) {
+        return true;
+      }
       return false;
     }
     return false;
@@ -127,6 +142,15 @@ function importName(imported: Identifier | StringLiteral): string {
     //          ^^^
     return imported.name;
   }
+}
+
+function memberName(expr: MemberExpression): string | undefined {
+  if (expr.computed && expr.property.type === "StringLiteral") {
+    return expr.property.value;
+  } else if (!expr.computed && expr.property.type === "Identifier") {
+    return expr.property.name;
+  }
+  return undefined;
 }
 
 function rethrowUnless<T>(

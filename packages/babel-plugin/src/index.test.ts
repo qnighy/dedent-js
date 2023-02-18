@@ -131,6 +131,70 @@ describe("@qnighy/babel-plugin-dedent", () => {
       expect(await transform(input)).toBe(output);
     });
 
+    it("detects simple namespace imports", async () => {
+      const input = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m.dedent\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("detects namespace imports with simple computed member access", async () => {
+      const input = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m["dedent"]\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("ignores namespace imports with complex computed member access", async () => {
+      const input = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m[dedent]\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m[dedent]\`
+          foo
+          bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("ignores non-namespace MemberExpression as a tag", async () => {
+      const input = dedent`
+        const text = foo.bar.baz\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        const text = foo.bar.baz\`
+          foo
+          bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
     it("ignores global dedent", async () => {
       const input = dedent`
         const text = dedent\`
