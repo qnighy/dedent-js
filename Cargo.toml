@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "packages/swc-plugin",
+]
+
+[profile.release]
+lto = true

@@ -1,0 +1,10 @@
+{
+  "name": "@qnighy/swc-plugin-dedent",
+  "version": "0.1.0",
+  "main": "dist/index.wasm",
+  "scripts": {
+    "build": "cargo build --target wasm32-unknown-unknown --release && mkdir -p dist && cp ../../target/wasm32-unknown-unknown/release/qnighy_swc_plugin_dedent.wasm dist/index.wasm",
+    "build:debug": "cargo build --target wasm32-unknown-unknown && mkdir -p dist && cp ../../target/wasm32-unknown-unknown/debug/qnighy_swc_plugin_dedent.wasm dist/index.wasm",
+    "prepack": "$npm_execpath build"
+  }
+}

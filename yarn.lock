@@ -1872,6 +1872,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@qnighy/swc-plugin-dedent@workspace:packages/swc-plugin":
+  version: 0.0.0-use.local
+  resolution: "@qnighy/swc-plugin-dedent@workspace:packages/swc-plugin"
+  languageName: unknown
+  linkType: soft
+
 "@sinclair/typebox@npm:^0.24.1":
   version: 0.24.51
   resolution: "@sinclair/typebox@npm:0.24.51"
