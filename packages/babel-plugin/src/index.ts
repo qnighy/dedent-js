@@ -1,8 +1,12 @@
-import type {
+import {
   Expression,
   Identifier,
   ImportDeclaration,
+  ImportDefaultSpecifier,
+  ImportNamespaceSpecifier,
+  ImportSpecifier,
   MemberExpression,
+  Node,
   StringLiteral,
   V8IntrinsicIdentifier,
   // eslint-disable-next-line node/no-unpublished-import
@@ -12,12 +16,19 @@ import { cook, dedentRaw } from "@qnighy/dedent";
 
 export default function plugin(babel: typeof import("@babel/core")): PluginObj {
   const { types: t } = babel;
+  const imports = new Set<
+    NodePath<
+      ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier
+    >
+  >();
+  const removedReferences = new Set<NodePath<Node>>();
   return {
     name: "@qnighy/dedent",
     visitor: {
       TaggedTemplateExpression(path) {
         const tag = path.get("tag");
-        if (isDedentFn(tag)) {
+        let dedentRef = detectDedentFn(tag);
+        if (dedentRef) {
           // Case 1: dedent`...`
           const raws = dedentRaw(
             path.node.quasi.quasis.map((q) => q.value.raw)
@@ -36,9 +47,12 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
             }
           });
           path.replaceWith(path.node.quasi);
+          removedReferences.add(dedentRef.identifierPath);
+          imports.add(dedentRef.importPath);
         } else if (tag.isCallExpression()) {
           const callee = tag.get("callee");
-          if (isDedentFn(callee)) {
+          dedentRef = detectDedentFn(callee);
+          if (dedentRef) {
             // Case 2: dedent(innerTag)`...`
 
             // Check against complex arguments
@@ -66,19 +80,53 @@ export default function plugin(babel: typeof import("@babel/core")): PluginObj {
               }
             });
             tag.replaceWith(asValue(babel, innerTag));
+            removedReferences.add(dedentRef.identifierPath);
+            imports.add(dedentRef.importPath);
           }
         }
+      },
+      Program: {
+        exit() {
+          for (const spec of imports) {
+            if (!spec.node) {
+              // it sometimes happens if the import has been removed for some other reasom
+              continue;
+            }
+            const binding = spec.scope.getBinding(spec.node.local.name);
+            if (!binding) {
+              continue;
+            }
+            const removable = binding.referencePaths.every((p) =>
+              removedReferences.has(p)
+            );
+            if (removable) {
+              const decl = spec.parentPath as NodePath<ImportDeclaration>;
+              if (decl.node.specifiers.length === 1) {
+                decl.remove();
+              } else {
+                spec.remove();
+              }
+            }
+          }
+        },
       },
     },
   };
 }
 
+type DedentRef = {
+  identifierPath: NodePath<Identifier>;
+  importPath: NodePath<
+    ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier
+  >;
+};
+
 /**
  * Does the expression reference the `dedent` function?
  */
-function isDedentFn(
+function detectDedentFn(
   expr: NodePath<V8IntrinsicIdentifier | Expression>
-): boolean {
+): DedentRef | undefined {
   if (expr.isIdentifier()) {
     // Check for:
     // ```js
@@ -87,7 +135,7 @@ function isDedentFn(
     // ```
     const binding = expr.scope.getBinding(expr.node.name);
     if (!binding) {
-      return false;
+      return;
     }
     const ref = binding.path;
     if (
@@ -95,9 +143,12 @@ function isDedentFn(
       importName(ref.node.imported) === "dedent" &&
       (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
     ) {
-      return true;
+      return {
+        identifierPath: expr,
+        importPath: ref,
+      };
     }
-    return false;
+    return;
   } else if (expr.isMemberExpression()) {
     // Check for:
     // ```js
@@ -106,11 +157,11 @@ function isDedentFn(
     // ```
     const ns = expr.get("object");
     if (!ns.isIdentifier()) {
-      return false;
+      return;
     }
     const binding = ns.scope.getBinding(ns.node.name);
     if (!binding) {
-      return false;
+      return;
     }
     const ref = binding.path;
     if (
@@ -118,11 +169,13 @@ function isDedentFn(
       memberName(expr.node) === "dedent" &&
       (ref.parent as ImportDeclaration).source.value === "@qnighy/dedent"
     ) {
-      return true;
+      return {
+        identifierPath: ns,
+        importPath: ref,
+      };
     }
-    return false;
+    return;
   }
-  return false;
 }
 
 function asValue(

@@ -25,9 +25,7 @@ describe("@qnighy/babel-plugin-dedent", () => {
           bar
         \`;
       `;
-      // TODO: remove imports
       const output = dedent`
-        import { dedent } from "@qnighy/dedent";
         const text = \`foo
         bar
         \`;`;
@@ -41,9 +39,7 @@ describe("@qnighy/babel-plugin-dedent", () => {
           bar
         \`;
       `;
-      // TODO: remove imports
       const output = dedent`
-        import { dedent } from "@qnighy/dedent";
         const text = foo\`foo
         bar
         \`;`;
@@ -108,7 +104,6 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import { dedent as m } from "@qnighy/dedent";
         const text = \`foo
         bar
         \`;`;
@@ -124,7 +119,6 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import { "dedent" as dedent } from "@qnighy/dedent";
         const text = \`foo
         bar
         \`;`;
@@ -140,7 +134,6 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import * as m from "@qnighy/dedent";
         const text = \`foo
         bar
         \`;`;
@@ -156,7 +149,6 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import * as m from "@qnighy/dedent";
         const text = \`foo
         bar
         \`;`;
@@ -255,7 +247,6 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import { dedent } from "@qnighy/dedent";
         const text = foo\`foo
         bar\\9
         \`;`;
@@ -326,10 +317,137 @@ describe("@qnighy/babel-plugin-dedent", () => {
         \`;
       `;
       const output = dedent`
-        import { dedent } from "@qnighy/dedent";
         const text = (0, foo.bar)\`foo
         bar
         \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+  });
+
+  describe("import removal", () => {
+    it("removes imports in the simplest case", async () => {
+      const input = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text = dedent\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        const text = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("removes namespace imports as well", async () => {
+      const input = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m.dedent\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        const text = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("removes imports even if there are multiple uses", async () => {
+      const input = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text1 = dedent\`
+          foo
+          bar
+        \`;
+
+        const text2 = dedent\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        const text1 = \`foo
+        bar
+        \`;
+        const text2 = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("removes only the import specifier if other imports are in use", async () => {
+      const input = dedent`
+        import { dedent, dedentRaw } from "@qnighy/dedent";
+        const text = dedent\`
+          foo
+          bar
+        \`;
+      `;
+      const output = dedent`
+        import { dedentRaw } from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("doesn't remove unused ones", async () => {
+      const input = dedent`
+        import { dedent } from "@qnighy/dedent";
+        import { dedent as dedent2 } from "@qnighy/dedent";
+        import { dedent as dedent3 } from "@qnighy/dedent";
+        const text = dedent\`
+          foo
+          bar
+        \`;
+        dedent3;
+      `;
+      const output = dedent`
+        import { dedent as dedent2 } from "@qnighy/dedent";
+        import { dedent as dedent3 } from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;
+        dedent3;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("doesn't remove imports if there are other non-removable uses", async () => {
+      const input = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text = dedent\`
+          foo
+          bar
+        \`;
+        dedent;
+      `;
+      const output = dedent`
+        import { dedent } from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;
+        dedent;`;
+      expect(await transform(input)).toBe(output);
+    });
+
+    it("doesn't remove namespace imports if there are other non-removable uses", async () => {
+      const input = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = m.dedent\`
+          foo
+          bar
+        \`;
+        m.dedent;
+      `;
+      const output = dedent`
+        import * as m from "@qnighy/dedent";
+        const text = \`foo
+        bar
+        \`;
+        m.dedent;`;
       expect(await transform(input)).toBe(output);
     });
   });
