@@ -8,7 +8,6 @@ use swc_core::ecma::ast::{
     ModuleExportName, Program, TaggedTpl,
 };
 use swc_core::ecma::atoms::{Atom, JsWord};
-use swc_core::ecma::transforms::testing::test;
 use swc_core::ecma::visit::{as_folder, FoldWith, VisitMut, VisitMutWith};
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
@@ -112,6 +111,19 @@ impl VisitMut for TransformVisitor {
         let mut tag_orig = n.tag.unwrap_parens_mut().take().call().unwrap();
         let arg = tag_orig.args.swap_remove(0).expr;
         n.tag = arg;
+
+        let quasis_orig = n
+            .tpl
+            .quasis
+            .iter()
+            .map(|elem| elem.raw.to_owned())
+            .collect::<Vec<_>>();
+        let quasis = dedent_raw(&quasis_orig);
+        for (elem, new_quasi) in n.tpl.quasis.iter_mut().zip(&quasis) {
+            elem.raw = Atom::new(new_quasi.as_str());
+            // TODO: compute cooked correctly
+            elem.cooked = None;
+        }
     }
 }
 
@@ -201,24 +213,40 @@ fn import_name(spec: &ImportNamedSpecifier) -> &JsWord {
     }
 }
 
-// An example to test plugin transform.
-// Recommended strategy to test plugin's transform is verify
-// the Visitor's behavior, instead of trying to run `process_transform` with mocks
-// unless explicitly required to do so.
-test!(
-    Default::default(),
-    |_| as_folder(MainVisitor::new()),
-    transform_dedent_calls,
-    // Input codes
-    r#"import { dedent } from "@qnighy/dedent";
+#[cfg(test)]
+mod test_basic_behavior {
+    use super::*;
+    use swc_core::ecma::transforms::testing::test;
+
+    test!(
+        Default::default(),
+        |_| as_folder(MainVisitor::new()),
+        transform_dedent_calls,
+        r#"import { dedent } from "@qnighy/dedent";
 const text = dedent`
   foo
   bar
 `;
 "#,
-    // Output codes after transformed with plugin
-    r#"import { dedent } from "@qnighy/dedent";
+        r#"import { dedent } from "@qnighy/dedent";
 const text = `foo
 bar
 `;"#
-);
+    );
+
+    test!(
+        Default::default(),
+        |_| as_folder(MainVisitor::new()),
+        transform_wrapping_dedent_calls,
+        r#"import { dedent } from "@qnighy/dedent";
+const text = dedent(foo)`
+  foo
+  bar
+`;
+"#,
+        r#"import { dedent } from "@qnighy/dedent";
+const text = foo`foo
+bar
+`;"#
+    );
+}
