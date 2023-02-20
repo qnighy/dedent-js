@@ -12,14 +12,13 @@ where
         while let Some(pos) = find_newline(elem, last) {
             let end_pos = find_non_space(elem, pos);
             let len = end_pos - pos;
-            let has_content =
-                if end_pos < elem.len() {
-                    // There is a character in the line
-                    !has_newline_at(elem, end_pos)
-                } else {
-                    // There is a substitution
-                    i + 1 < raw.len()
-                };
+            let has_content = if end_pos < elem.len() {
+                // There is a character in the line
+                !has_newline_at(elem, end_pos)
+            } else {
+                // There is a substitution
+                i + 1 < raw.len()
+            };
             if has_content {
                 level = level.min(len);
             }
@@ -27,22 +26,25 @@ where
         }
     }
     let level = level;
-    let mut dedented = raw.iter().map(|elem| {
-        let elem: &str = elem.as_ref();
-        let mut buf = String::with_capacity(elem.len());
-        let mut last = 0;
-        while let Some(pos) = find_newline(elem, last) {
-            buf.push_str(&elem[last..pos]);
-            let end_pos = find_non_space(elem, pos);
-            let len = end_pos - pos;
-            let trimmed_pos = pos + len.min(level);
-            buf.push_str(&elem[trimmed_pos..end_pos]);
+    let mut dedented = raw
+        .iter()
+        .map(|elem| {
+            let elem: &str = elem.as_ref();
+            let mut buf = String::with_capacity(elem.len());
+            let mut last = 0;
+            while let Some(pos) = find_newline(elem, last) {
+                buf.push_str(&elem[last..pos]);
+                let end_pos = find_non_space(elem, pos);
+                let len = end_pos - pos;
+                let trimmed_pos = pos + len.min(level);
+                buf.push_str(&elem[trimmed_pos..end_pos]);
 
-            last = end_pos;
-        }
-        buf.push_str(&elem[last..]);
-        buf
-    }).collect::<Vec<_>>();
+                last = end_pos;
+            }
+            buf.push_str(&elem[last..]);
+            buf
+        })
+        .collect::<Vec<_>>();
 
     {
         // Dedent the first line and remove it if it is empty
@@ -55,8 +57,7 @@ where
     dedented
 }
 
-fn find_newline(s: &str, from: usize) -> Option<usize>
-{
+fn find_newline(s: &str, from: usize) -> Option<usize> {
     let s: &[u8] = s.as_ref();
     let mut i = from;
     while i < s.len() {
@@ -68,13 +69,13 @@ fn find_newline(s: &str, from: usize) -> Option<usize>
     None
 }
 
-fn has_newline_at(s: &str, i: usize) -> bool
-{
+fn has_newline_at(s: &str, i: usize) -> bool {
     check_newline_at(s, i).is_some()
 }
 
 fn check_newline_at<S>(s: &S, i: usize) -> Option<usize>
-where S: AsRef<[u8]> + ?Sized
+where
+    S: AsRef<[u8]> + ?Sized,
 {
     let s: &[u8] = s.as_ref();
     for &needle in &["\n", "\u{2028}", "\u{2029}"] {
@@ -85,8 +86,7 @@ where S: AsRef<[u8]> + ?Sized
     None
 }
 
-fn find_non_space(s: &str, from: usize) -> usize
-{
+fn find_non_space(s: &str, from: usize) -> usize {
     let s: &[u8] = s.as_ref();
     let mut i = from;
     while i < s.len() && (s[i] == b' ' || s[i] == b'\t') {
@@ -145,7 +145,10 @@ mod tests {
     }
     #[test]
     fn test_dedent_the_second_line_tab_case_with_substitution() {
-        assert_eq!(dedent_raw(&["foo", "foo\n\t\tbar\t"]), ["foo", "foo\nbar\t"]);
+        assert_eq!(
+            dedent_raw(&["foo", "foo\n\t\tbar\t"]),
+            ["foo", "foo\nbar\t"]
+        );
     }
     #[test]
     fn test_dedent_with_variable_indentation_1() {
@@ -173,33 +176,37 @@ mod tests {
     }
     #[test]
     fn test_truncate_short_empty_line_in_the_middle() {
-        assert_eq!(dedent_raw(&["foo\n \n  bar\n    baz"]), [
-            "foo\n\nbar\n  baz",
-        ]);
+        assert_eq!(
+            dedent_raw(&["foo\n \n  bar\n    baz"]),
+            ["foo\n\nbar\n  baz",]
+        );
     }
     #[test]
     fn test_truncate_short_empty_line_in_the_last() {
-        assert_eq!(dedent_raw(&["foo\n  bar\n    baz\n "]), [
-            "foo\nbar\n  baz\n",
-        ]);
+        assert_eq!(
+            dedent_raw(&["foo\n  bar\n    baz\n "]),
+            ["foo\nbar\n  baz\n",]
+        );
     }
     #[test]
     fn test_regard_substitution_as_a_content() {
-        assert_eq!(dedent_raw(&["foo\n ", "\n  bar\n    baz"]), [
-            "foo\n",
-            "\n bar\n   baz",
-        ]);
+        assert_eq!(
+            dedent_raw(&["foo\n ", "\n  bar\n    baz"]),
+            ["foo\n", "\n bar\n   baz",]
+        );
     }
     #[test]
     fn test_dedent_long_empty_line() {
-        assert_eq!(dedent_raw(&["foo\n   \n  bar\n    baz"]), [
-            "foo\n \nbar\n  baz",
-        ]);
+        assert_eq!(
+            dedent_raw(&["foo\n   \n  bar\n    baz"]),
+            ["foo\n \nbar\n  baz",]
+        );
     }
     #[test]
     fn test_dedent_the_second_line_and_later_at_infinity_if_they_are_all_empty() {
-        assert_eq!(dedent_raw(&["x\n  \u{2028}\t\n   \u{2029}\t\t"]), [
-            "x\n\u{2028}\n\u{2029}",
-        ]);
+        assert_eq!(
+            dedent_raw(&["x\n  \u{2028}\t\n   \u{2029}\t\t"]),
+            ["x\n\u{2028}\n\u{2029}",]
+        );
     }
 }

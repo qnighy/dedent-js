@@ -3,10 +3,13 @@ mod dedent_raw;
 use std::collections::HashSet;
 
 use swc_core::common::util::take::Take;
-use swc_core::ecma::ast::{Program, ImportSpecifier, ModuleExportName, ImportNamedSpecifier, Id, TaggedTpl, Expr, MemberProp, Lit, Callee, ExprOrSpread, Module};
+use swc_core::ecma::ast::{
+    Callee, Expr, ExprOrSpread, Id, ImportNamedSpecifier, ImportSpecifier, Lit, MemberProp, Module,
+    ModuleExportName, Program, TaggedTpl,
+};
+use swc_core::ecma::atoms::{Atom, JsWord};
 use swc_core::ecma::transforms::testing::test;
 use swc_core::ecma::visit::{as_folder, FoldWith, VisitMut, VisitMutWith};
-use swc_core::ecma::atoms::{JsWord, Atom};
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
 use crate::dedent_raw::dedent_raw;
@@ -22,9 +25,7 @@ struct MainVisitor {
 
 impl MainVisitor {
     fn new() -> Self {
-        Self {
-            ids: Ids::new(),
-        }
+        Self { ids: Ids::new() }
     }
 }
 
@@ -32,7 +33,11 @@ impl VisitMut for MainVisitor {
     fn visit_mut_module(&mut self, n: &mut Module) {
         let imports = collect_imports(&self.ids, &n);
         if !imports.is_empty() {
-            TransformVisitor { ids: self.ids.clone(), imports }.visit_mut_module(n);
+            TransformVisitor {
+                ids: self.ids.clone(),
+                imports,
+            }
+            .visit_mut_module(n);
         }
     }
 }
@@ -69,7 +74,11 @@ impl VisitMut for TransformVisitor {
         let ttpl = n.take().tagged_tpl().unwrap();
         let mut tpl = ttpl.tpl;
 
-        let quasis_orig = tpl.quasis.iter().map(|elem| elem.raw.to_owned()).collect::<Vec<_>>();
+        let quasis_orig = tpl
+            .quasis
+            .iter()
+            .map(|elem| elem.raw.to_owned())
+            .collect::<Vec<_>>();
         let quasis = dedent_raw(&quasis_orig);
         for (elem, new_quasi) in tpl.quasis.iter_mut().zip(&quasis) {
             elem.raw = Atom::new(new_quasi.as_str());
@@ -90,7 +99,13 @@ impl VisitMut for TransformVisitor {
         if !self.imports.is_dedent_fn(&self.ids, callee) {
             return;
         }
-        if !matches!(tag_orig.args[..], [ExprOrSpread { spread: None, expr: _ }]) {
+        if !matches!(
+            tag_orig.args[..],
+            [ExprOrSpread {
+                spread: None,
+                expr: _
+            }]
+        ) {
             return;
         }
 
@@ -117,7 +132,10 @@ impl Imports {
             Expr::Ident(e) => self.dedent.contains(&e.to_id()),
             Expr::Member(e) => {
                 if let Some(obj) = e.obj.unwrap_parens().as_ident() {
-                    self.ns.contains(&obj.to_id()) && member_name(&e.prop).map(|name| *name == ids.dedent).unwrap_or(false)
+                    self.ns.contains(&obj.to_id())
+                        && member_name(&e.prop)
+                            .map(|name| *name == ids.dedent)
+                            .unwrap_or(false)
                 } else {
                     false
                 }
