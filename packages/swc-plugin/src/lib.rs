@@ -3,10 +3,11 @@ mod dedent_raw;
 use std::collections::HashSet;
 use std::mem;
 
+use swc_core::common::DUMMY_SP;
 use swc_core::common::util::take::Take;
 use swc_core::ecma::ast::{
     Callee, Expr, ExprOrSpread, Id, Ident, ImportNamedSpecifier, ImportSpecifier, Lit, MemberProp,
-    Module, ModuleDecl, ModuleExportName, ModuleItem, Program, TaggedTpl,
+    Module, ModuleDecl, ModuleExportName, ModuleItem, Program, TaggedTpl, SeqExpr, Number,
 };
 use swc_core::ecma::atoms::{Atom, JsWord};
 use swc_core::ecma::visit::{as_folder, FoldWith, Visit, VisitMut, VisitMutWith};
@@ -135,7 +136,7 @@ impl VisitMut for TransformVisitor {
 
         let mut tag_orig = n.tag.unwrap_parens_mut().take().call().unwrap();
         let arg = tag_orig.args.swap_remove(0).expr;
-        n.tag = arg;
+        n.tag = as_value(arg);
 
         let quasis_orig = n
             .tpl
@@ -269,6 +270,28 @@ fn modify_import(orig_item: &mut Option<ModuleItem>, removable_ids: &HashSet<Id>
         .collect::<Vec<_>>();
     if item.specifiers.is_empty() {
         *orig_item = None;
+    }
+}
+
+fn as_value(expr: Box<Expr>) -> Box<Expr> {
+    let inner = expr.unwrap_parens();
+    if inner.is_member() || inner.as_opt_chain().map(|chain| chain.base.is_member()).unwrap_or(false) {
+        // foo.bar`...` -> (0, foo.bar)`...`
+        Box::new(SeqExpr {
+            span: DUMMY_SP,
+            exprs: vec![
+                Box::new(
+                    Lit::Num(Number {
+                        span:DUMMY_SP,
+                        value:0.0,
+                        raw: None,
+                    }).into(),
+                ),
+                expr,
+            ],
+        }.into())
+    } else {
+        expr
     }
 }
 
@@ -618,8 +641,6 @@ mod test_wrapped_functions_this_binding {
     use swc_core::ecma::transforms::testing::test;
 
     test!(
-        // TODO,
-        ignore,
         Default::default(),
         |_| as_folder(MainVisitor::new()),
         transform_member_expression_with_as_value_wrapper,
