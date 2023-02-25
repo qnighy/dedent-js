@@ -1,18 +1,20 @@
+mod cook;
 mod dedent_raw;
 
 use std::collections::HashSet;
 use std::mem;
 
-use swc_core::common::DUMMY_SP;
 use swc_core::common::util::take::Take;
+use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast::{
     Callee, Expr, ExprOrSpread, Id, Ident, ImportNamedSpecifier, ImportSpecifier, Lit, MemberProp,
-    Module, ModuleDecl, ModuleExportName, ModuleItem, Program, TaggedTpl, SeqExpr, Number,
+    Module, ModuleDecl, ModuleExportName, ModuleItem, Number, Program, SeqExpr, TaggedTpl,
 };
 use swc_core::ecma::atoms::{Atom, JsWord};
 use swc_core::ecma::visit::{as_folder, FoldWith, Visit, VisitMut, VisitMutWith};
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
+use crate::cook::cook;
 use crate::dedent_raw::dedent_raw;
 
 #[plugin_transform]
@@ -95,8 +97,7 @@ impl VisitMut for TransformVisitor {
         let Some(dedent_id) = self.imports.detect_dedent_fn(&self.ids, &ttpl.tag) else {
             return;
         };
-        let ttpl = n.take().tagged_tpl().unwrap();
-        let mut tpl = ttpl.tpl;
+        let tpl = &n.as_tagged_tpl().unwrap().tpl;
 
         let quasis_orig = tpl
             .quasis
@@ -104,10 +105,14 @@ impl VisitMut for TransformVisitor {
             .map(|elem| elem.raw.to_owned())
             .collect::<Vec<_>>();
         let quasis = dedent_raw(&quasis_orig);
-        for (elem, new_quasi) in tpl.quasis.iter_mut().zip(&quasis) {
+        let Ok(cooked) = quasis.iter().map(|raw| cook(raw)).collect::<Result<Vec<_>, _>>() else {
+            return;
+        };
+        let ttpl = n.take().tagged_tpl().unwrap();
+        let mut tpl = ttpl.tpl;
+        for ((elem, new_quasi), cooked) in tpl.quasis.iter_mut().zip(&quasis).zip(&cooked) {
             elem.raw = Atom::new(new_quasi.as_str());
-            // TODO: compute cooked correctly
-            elem.cooked = None;
+            elem.cooked = cooked.as_ref().map(|cooked| Atom::new(cooked.as_str()));
         }
 
         *n = Expr::Tpl(tpl);
@@ -147,8 +152,7 @@ impl VisitMut for TransformVisitor {
         let quasis = dedent_raw(&quasis_orig);
         for (elem, new_quasi) in n.tpl.quasis.iter_mut().zip(&quasis) {
             elem.raw = Atom::new(new_quasi.as_str());
-            // TODO: compute cooked correctly
-            elem.cooked = None;
+            elem.cooked = cook(new_quasi.as_str()).unwrap_or(None).map(Atom::new);
         }
         self.removable_ids.insert(dedent_id);
     }
@@ -275,21 +279,30 @@ fn modify_import(orig_item: &mut Option<ModuleItem>, removable_ids: &HashSet<Id>
 
 fn as_value(expr: Box<Expr>) -> Box<Expr> {
     let inner = expr.unwrap_parens();
-    if inner.is_member() || inner.as_opt_chain().map(|chain| chain.base.is_member()).unwrap_or(false) {
+    if inner.is_member()
+        || inner
+            .as_opt_chain()
+            .map(|chain| chain.base.is_member())
+            .unwrap_or(false)
+    {
         // foo.bar`...` -> (0, foo.bar)`...`
-        Box::new(SeqExpr {
-            span: DUMMY_SP,
-            exprs: vec![
-                Box::new(
-                    Lit::Num(Number {
-                        span:DUMMY_SP,
-                        value:0.0,
-                        raw: None,
-                    }).into(),
-                ),
-                expr,
-            ],
-        }.into())
+        Box::new(
+            SeqExpr {
+                span: DUMMY_SP,
+                exprs: vec![
+                    Box::new(
+                        Lit::Num(Number {
+                            span: DUMMY_SP,
+                            value: 0.0,
+                            raw: None,
+                        })
+                        .into(),
+                    ),
+                    expr,
+                ],
+            }
+            .into(),
+        )
     } else {
         expr
     }
@@ -544,8 +557,6 @@ mod test_escape_handling {
     use swc_core::ecma::transforms::testing::test;
 
     test!(
-        // TODO
-        ignore,
         Default::default(),
         |_| as_folder(MainVisitor::new()),
         skip_transformation_if_there_is_an_invalid_escape_in_the_direct_form,
