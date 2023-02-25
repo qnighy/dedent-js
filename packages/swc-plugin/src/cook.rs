@@ -19,7 +19,7 @@ pub(crate) fn cook(raw: &str) -> Result<Option<String>, EscapeError> {
             b'0' => {
                 let esc1 = esc.as_bytes().get(1).copied().unwrap_or(b'\0');
                 if esc1.is_ascii_digit() {
-                    return Err(EscapeError::InvalidUnicodeEscape);
+                    return Err(EscapeError::LegacyOctalEscape);
                 }
                 buf.push_str("\0");
                 last = escape_pos + 2;
@@ -222,7 +222,7 @@ mod tests {
     fn test_reject_octal_leading_zero() {
         assert_eq!(
             cook("\\01").unwrap_err().to_string(),
-            "Invalid Unicode escape sequence"
+            "Octal escape sequences are not allowed in template strings."
         );
     }
 

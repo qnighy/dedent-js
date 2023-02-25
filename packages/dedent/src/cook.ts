@@ -16,11 +16,10 @@ export function cook(raw: string): string {
           throw new SyntaxError(
             "\\8 and \\9 are not allowed in template strings."
           );
-        } else if (/[1-7]/.test(ch)) {
+        } else {
           throw new SyntaxError(
             "Octal escape sequences are not allowed in template strings."
           );
-        } else {
           throw new SyntaxError("Invalid Unicode escape sequence");
         }
       } else if (ch === "x") {

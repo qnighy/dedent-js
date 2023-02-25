@@ -50,7 +50,7 @@ describe("cook", () => {
     {
       name: "rejects octal (leading zero)",
       input: "\\01",
-      error: "Invalid Unicode escape sequence",
+      error: "Octal escape sequences are not allowed in template strings.",
     },
     {
       name: "expands hex escapes",
