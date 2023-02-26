@@ -1,7 +1,27 @@
 {
   "name": "@qnighy/swc-plugin-dedent",
   "version": "0.1.0",
+  "description": "Optimization plugin for @qnighy/dedent",
+  "keywords": [
+    "swc-plugin"
+  ],
+  "homepage": "https://github.com/qnighy/dedent-js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qnighy/dedent-js.git",
+    "directory": "packages/swc-plugin"
+  },
+  "bugs": {
+    "url" : "https://github.com/qnighy/dedent-js/issues"
+  },
+  "license": "MIT",
+  "author": "Masaki Hara <ackie.h.gmai@gmail.com>",
   "main": "dist/index.wasm",
+  "files": [
+    "src/**/*",
+    "dist/**/*",
+    "Cargo.toml"
+  ],
   "scripts": {
     "build": "cargo build --target wasm32-unknown-unknown --release && mkdir -p dist && cp ../../target/wasm32-unknown-unknown/release/qnighy_swc_plugin_dedent.wasm dist/index.wasm",
     "build:debug": "cargo build --target wasm32-unknown-unknown && mkdir -p dist && cp ../../target/wasm32-unknown-unknown/debug/qnighy_swc_plugin_dedent.wasm dist/index.wasm",

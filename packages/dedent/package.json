@@ -1,6 +1,23 @@
 {
   "name": "@qnighy/dedent",
   "version": "0.1.0",
+  "description": "JS multi-line literal done right",
+  "keywords": [
+    "dedent",
+    "tag",
+    "multi-line string"
+  ],
+  "homepage": "https://github.com/qnighy/dedent-js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qnighy/dedent-js.git",
+    "directory": "packages/dedent"
+  },
+  "bugs": {
+    "url" : "https://github.com/qnighy/dedent-js/issues"
+  },
+  "license": "MIT",
+  "author": "Masaki Hara <ackie.h.gmai@gmail.com>",
   "type": "module",
   "main": "./cjs/dist/index.js",
   "types": "./dist/index.d.ts",
