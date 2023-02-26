@@ -8,6 +8,7 @@
   "scripts": {
     "build:all": "yarn workspaces foreach -pt run build",
     "build:js": "yarn workspaces foreach -pt --exclude @qnighy/swc-plugin-dedent run build",
+    "changeset": "changeset",
     "fmt:all": "yarn fmt:js && cargo fmt --all",
     "fmt:all:check": "yarn fmt:js:check && cargo fmt --all --check",
     "fmt:js": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run fmt",
@@ -20,6 +21,7 @@
     "test:js:nobuild": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run test"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.26.0",
     "@yarnpkg/sdks": "^3.0.0-rc.39",
     "eslint": "^8.34.0",
     "prettier": "^2.8.4",
