@@ -14,7 +14,7 @@
     "directory": "packages/dedent"
   },
   "bugs": {
-    "url" : "https://github.com/qnighy/dedent-js/issues"
+    "url": "https://github.com/qnighy/dedent-js/issues"
   },
   "license": "MIT",
   "author": "Masaki Hara <ackie.h.gmai@gmail.com>",
