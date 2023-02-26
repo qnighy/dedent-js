@@ -179,3 +179,7 @@ There are three types of newline in JS:
 - PS (`\u2029`)
 
 They all start new lines. Note that CR (`\r`) and CRLF (`\r\n`) in the source text are automatically converted to LF (`\n`) before parsing, thus the library cannot distinguish between LF, CR, and CRLF.
+
+## License
+
+MIT

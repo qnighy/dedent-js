@@ -15,3 +15,7 @@ yarn add -D @qnighy/swc-plugin-dedent
 # OR:
 npm install -D @qnighy/swc-plugin-dedent
 ```
+
+## License
+
+MIT
