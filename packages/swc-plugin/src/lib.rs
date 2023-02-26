@@ -34,7 +34,7 @@ impl MainVisitor {
 
 impl VisitMut for MainVisitor {
     fn visit_mut_module(&mut self, n: &mut Module) {
-        let imports = collect_imports(&self.ids, &n);
+        let imports = collect_imports(&self.ids, n);
         if imports.is_empty() {
             return;
         }

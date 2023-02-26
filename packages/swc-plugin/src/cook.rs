@@ -1,3 +1,5 @@
+#![allow(clippy::single_char_add_str)]
+
 use std::fmt;
 
 /**
@@ -14,7 +16,7 @@ pub(crate) fn cook(raw: &str) -> Result<Option<String>, EscapeError> {
         };
         buf.push_str(&raw[last..escape_pos]);
         let esc = &raw[escape_pos + 1..];
-        let esc0 = esc.as_bytes().get(0).copied().unwrap_or(b'\0');
+        let esc0 = esc.as_bytes().first().copied().unwrap_or(b'\0');
         match esc0 {
             b'0' => {
                 let esc1 = esc.as_bytes().get(1).copied().unwrap_or(b'\0');
@@ -124,7 +126,7 @@ pub(crate) fn cook(raw: &str) -> Result<Option<String>, EscapeError> {
             _ => {
                 let newline_len = ["\n", "\r", "\u{2028}", "\u{2029}"]
                     .iter()
-                    .find_map(|&needle| esc.starts_with(needle).then(|| needle.len()));
+                    .find_map(|&needle| esc.starts_with(needle).then_some(needle.len()));
                 if let Some(newline_len) = newline_len {
                     last = escape_pos + 1 + newline_len;
                 } else {
@@ -139,7 +141,7 @@ pub(crate) fn cook(raw: &str) -> Result<Option<String>, EscapeError> {
         }
     }
     buf.push_str(&raw[last..]);
-    Ok((!has_invalid_surrogate).then(|| buf))
+    Ok((!has_invalid_surrogate).then_some(buf))
 }
 
 #[derive(Debug)]
