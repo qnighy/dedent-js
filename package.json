@@ -28,6 +28,7 @@
     "typescript": "^4.9.5"
   },
   "resolutions": {
-    "ts-jest-resolver/jest-resolve": "29"
+    "ts-jest-resolver/jest-resolve": "29",
+    "@changesets/cli@^2.26.0": "patch:@changesets/cli@npm%3A2.26.0#./.yarn/patches/@changesets-cli-npm-2.26.0-49d5c5f72d.patch"
   }
 }

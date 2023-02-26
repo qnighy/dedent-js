@@ -1,0 +1,357 @@
+diff --git a/dist/cli.cjs.dev.js b/dist/cli.cjs.dev.js
+index b1582198d3d2631569ff59f27170354a932d3ad0..0e62e5f434bd38f6556d2b3310635be08a3128b0 100644
+--- a/dist/cli.cjs.dev.js
++++ b/dist/cli.cjs.dev.js
+@@ -705,28 +705,28 @@ function getCorrectRegistry(packageJson) {
+   return !registry || registry === "https://registry.yarnpkg.com" ? "https://registry.npmjs.org" : registry;
+ }
+ 
++const getPublishToolVersion = async (name, cwd) => (await spawn__default['default'](name, ["--version"], {
++  cwd
++})).stdout.toString().trim();
++
+ async function getPublishTool(cwd) {
+-  const pm = await preferredPM__default['default'](cwd);
+-  if (!pm || pm.name !== "pnpm") return {
+-    name: "npm"
+-  };
++  var _await$preferredPM;
+ 
+-  try {
+-    let result = await spawn__default['default']("pnpm", ["--version"], {
+-      cwd
+-    });
+-    let version = result.stdout.toString().trim();
+-    let parsed = semver__default['default'].parse(version);
+-    return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: (parsed === null || parsed === void 0 ? void 0 : parsed.major) === undefined ? false : parsed.major >= 5
+-    };
+-  } catch (e) {
++  const name = ((_await$preferredPM = await preferredPM__default['default'](cwd)) === null || _await$preferredPM === void 0 ? void 0 : _await$preferredPM.name) || "npm";
++  const version = await getPublishToolVersion(name, cwd);
++
++  if (name === "yarn" && semver__default['default'].lt(version, "2.0.0")) {
++    // Yarn Classic doesn't do anything special when publishing, let's stick to the npm client in such a case
+     return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: false
++      name: "npm",
++      version: await getPublishToolVersion("npm", cwd)
+     };
+   }
++
++  return {
++    name,
++    version
++  };
+ }
+ 
+ async function getTokenIsRequired() {
+@@ -816,20 +816,32 @@ let getOtpCode = async twoFactorState => {
+   }
+ 
+   return askForOtpCode(twoFactorState);
++};
++
++const isOtpError = error => {
++  // The first case is no 2fa provided, the second is when the 2fa is wrong (timeout or wrong words)
++  return error.code === "EOTP" || error.code === "E401" && error.detail.includes("--otp=<code>");
+ }; // we have this so that we can do try a publish again after a publish without
+ // the call being wrapped in the npm request limit and causing the publishes to potentially never run
+ 
++
+ async function internalPublish(pkgName, opts, twoFactorState) {
+   let publishTool = await getPublishTool(opts.cwd);
+-  let publishFlags = opts.access ? ["--access", opts.access] : [];
++  let shouldHandleOtp = !isCI__default['default'] && (publishTool.name === "yarn" ? semver__default['default'].gte(publishTool.version, "3.2.0-rc.8") : true);
++  let publishFlags = publishTool.name !== "yarn" ? ["--json"] : [];
++
++  if (opts.access) {
++    publishFlags.push("--access", opts.access);
++  }
++
+   publishFlags.push("--tag", opts.tag);
+ 
+-  if ((await twoFactorState.isRequired) && !isCI__default['default']) {
++  if (shouldHandleOtp && (await twoFactorState.isRequired)) {
+     let otpCode = await getOtpCode(twoFactorState);
+     publishFlags.push("--otp", otpCode);
+   }
+ 
+-  if (publishTool.name === "pnpm" && publishTool.shouldAddNoGitChecks) {
++  if (publishTool.name === "pnpm" && semver__default['default'].gte(publishTool.version, "5.0.0")) {
+     publishFlags.push("--no-git-checks");
+   } // Due to a super annoying issue in yarn, we have to manually override this env variable
+   // See: https://github.com/yarnpkg/yarn/issues/2935#issuecomment-355292633
+@@ -842,21 +854,35 @@ async function internalPublish(pkgName, opts, twoFactorState) {
+     code,
+     stdout,
+     stderr
+-  } = await spawn__default['default'](publishTool.name, ["publish", opts.cwd, "--json", ...publishFlags], {
++  } = publishTool.name === "yarn" ? await spawn__default['default']("yarn", ["npm", "publish", ...publishFlags], {
++    cwd: opts.cwd,
++    env: Object.assign({}, process.env, envOverride)
++  }) : await spawn__default['default'](publishTool.name, ["publish", opts.cwd, ...publishFlags], {
+     env: Object.assign({}, process.env, envOverride)
+   });
+ 
+   if (code !== 0) {
+-    // NPM's --json output is included alongside the `prepublish` and `postpublish` output in terminal
++    // yarn berry doesn't support --json and we don't attempt to parse its output to a machine-readable format
++    if (publishTool.name === "yarn") {
++      const output = stdout.toString().trim().split("\n") // this filters out "unnamed" logs: https://yarnpkg.com/advanced/error-codes/#yn0000---unnamed
++      // this includes a list of packed files and the "summary output" like: "Failed with errors in 0s 75ms"
++      // those are not that interesting so we reduce the noise by dropping them
++      .filter(line => !/YN0000:/.test(line)).join("\n");
++      logger.error(`an error occurred while publishing ${pkgName}:`, `\n${output}`);
++      return {
++        published: false
++      };
++    } // NPM's --json output is included alongside the `prepublish` and `postpublish` output in terminal
+     // We want to handle this as best we can but it has some struggles:
+     // - output of those lifecycle scripts can contain JSON
+     // - npm7 has switched to printing `--json` errors to stderr (https://github.com/npm/cli/commit/1dbf0f9bb26ba70f4c6d0a807701d7652c31d7d4)
+     // Note that the `--json` output is always printed at the end so this should work
++
++
+     let json = getLastJsonObjectFromString(stderr.toString()) || getLastJsonObjectFromString(stdout.toString());
+ 
+     if (json !== null && json !== void 0 && json.error) {
+-      // The first case is no 2fa provided, the second is when the 2fa is wrong (timeout or wrong words)
+-      if ((json.error.code === "EOTP" || json.error.code === "E401" && json.error.detail.includes("--otp=<code>")) && !isCI__default['default']) {
++      if (shouldHandleOtp && isOtpError(json.error)) {
+         if (twoFactorState.token !== null) {
+           // the current otp code must be invalid since it errored
+           twoFactorState.token = null;
+diff --git a/dist/cli.cjs.prod.js b/dist/cli.cjs.prod.js
+index 5b1b7dd6439be4f0b721a17e683b1435c254f5b8..e2e47cccff695db1f65c9200f4fa39f8e67d978e 100644
+--- a/dist/cli.cjs.prod.js
++++ b/dist/cli.cjs.prod.js
+@@ -396,25 +396,20 @@ function getCorrectRegistry(packageJson) {
+   return registry && "https://registry.yarnpkg.com" !== registry ? registry : "https://registry.npmjs.org";
+ }
+ 
++const getPublishToolVersion = async (name, cwd) => (await spawn__default.default(name, [ "--version" ], {
++  cwd: cwd
++})).stdout.toString().trim();
++
+ async function getPublishTool(cwd) {
+-  const pm = await preferredPM__default.default(cwd);
+-  if (!pm || "pnpm" !== pm.name) return {
+-    name: "npm"
++  var _await$preferredPM;
++  const name = (null === (_await$preferredPM = await preferredPM__default.default(cwd)) || void 0 === _await$preferredPM ? void 0 : _await$preferredPM.name) || "npm", version = await getPublishToolVersion(name, cwd);
++  return "yarn" === name && semver__default.default.lt(version, "2.0.0") ? {
++    name: "npm",
++    version: await getPublishToolVersion("npm", cwd)
++  } : {
++    name: name,
++    version: version
+   };
+-  try {
+-    let version = (await spawn__default.default("pnpm", [ "--version" ], {
+-      cwd: cwd
+-    })).stdout.toString().trim(), parsed = semver__default.default.parse(version);
+-    return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: void 0 !== (null == parsed ? void 0 : parsed.major) && parsed.major >= 5
+-    };
+-  } catch (e) {
+-    return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: !1
+-    };
+-  }
+ }
+ 
+ async function getTokenIsRequired() {
+@@ -466,23 +461,36 @@ let otpAskLimit = pLimit__default.default(1), askForOtpCode = twoFactorState =>
+   return twoFactorState.token = val, val;
+ })), getOtpCode = async twoFactorState => null !== twoFactorState.token ? twoFactorState.token : askForOtpCode(twoFactorState);
+ 
++const isOtpError = error => "EOTP" === error.code || "E401" === error.code && error.detail.includes("--otp=<code>");
++
+ async function internalPublish(pkgName, opts, twoFactorState) {
+-  let publishTool = await getPublishTool(opts.cwd), publishFlags = opts.access ? [ "--access", opts.access ] : [];
+-  if (publishFlags.push("--tag", opts.tag), await twoFactorState.isRequired && !isCI__default.default) {
++  let publishTool = await getPublishTool(opts.cwd), shouldHandleOtp = !isCI__default.default && ("yarn" !== publishTool.name || semver__default.default.gte(publishTool.version, "3.2.0-rc.8")), publishFlags = "yarn" !== publishTool.name ? [ "--json" ] : [];
++  if (opts.access && publishFlags.push("--access", opts.access), publishFlags.push("--tag", opts.tag), 
++  shouldHandleOtp && await twoFactorState.isRequired) {
+     let otpCode = await getOtpCode(twoFactorState);
+     publishFlags.push("--otp", otpCode);
+   }
+-  "pnpm" === publishTool.name && publishTool.shouldAddNoGitChecks && publishFlags.push("--no-git-checks");
++  "pnpm" === publishTool.name && semver__default.default.gte(publishTool.version, "5.0.0") && publishFlags.push("--no-git-checks");
+   const envOverride = {
+     npm_config_registry: getCorrectRegistry()
+   };
+-  let {code: code, stdout: stdout, stderr: stderr} = await spawn__default.default(publishTool.name, [ "publish", opts.cwd, "--json", ...publishFlags ], {
++  let {code: code, stdout: stdout, stderr: stderr} = "yarn" === publishTool.name ? await spawn__default.default("yarn", [ "npm", "publish", ...publishFlags ], {
++    cwd: opts.cwd,
++    env: Object.assign({}, process.env, envOverride)
++  }) : await spawn__default.default(publishTool.name, [ "publish", opts.cwd, ...publishFlags ], {
+     env: Object.assign({}, process.env, envOverride)
+   });
+   if (0 !== code) {
++    if ("yarn" === publishTool.name) {
++      const output = stdout.toString().trim().split("\n").filter((line => !/YN0000:/.test(line))).join("\n");
++      return logger.error(`an error occurred while publishing ${pkgName}:`, "\n" + output), 
++      {
++        published: !1
++      };
++    }
+     let json = getLastJsonObjectFromString(stderr.toString()) || getLastJsonObjectFromString(stdout.toString());
+     if (null != json && json.error) {
+-      if (("EOTP" === json.error.code || "E401" === json.error.code && json.error.detail.includes("--otp=<code>")) && !isCI__default.default) return null !== twoFactorState.token && (twoFactorState.token = null), 
++      if (shouldHandleOtp && ("EOTP" === (error = json.error).code || "E401" === error.code && error.detail.includes("--otp=<code>"))) return null !== twoFactorState.token && (twoFactorState.token = null), 
+       twoFactorState.isRequired = Promise.resolve(!0), internalPublish(pkgName, opts, twoFactorState);
+       logger.error(`an error occurred while publishing ${pkgName}: ${json.error.code}`, json.error.summary, json.error.detail ? "\n" + json.error.detail : "");
+     }
+@@ -490,6 +498,7 @@ async function internalPublish(pkgName, opts, twoFactorState) {
+       published: !1
+     };
+   }
++  var error;
+   return {
+     published: !0
+   };
+diff --git a/dist/cli.esm.js b/dist/cli.esm.js
+index ced46d2520d4bff71b94e4023b1841373a55712b..3e89b0b84c66444c3281dd1e4747500720b9dc46 100644
+--- a/dist/cli.esm.js
++++ b/dist/cli.esm.js
+@@ -682,28 +682,28 @@ function getCorrectRegistry(packageJson) {
+   return !registry || registry === "https://registry.yarnpkg.com" ? "https://registry.npmjs.org" : registry;
+ }
+ 
++const getPublishToolVersion = async (name, cwd) => (await spawn$1(name, ["--version"], {
++  cwd
++})).stdout.toString().trim();
++
+ async function getPublishTool(cwd) {
+-  const pm = await preferredPM(cwd);
+-  if (!pm || pm.name !== "pnpm") return {
+-    name: "npm"
+-  };
++  var _await$preferredPM;
+ 
+-  try {
+-    let result = await spawn$1("pnpm", ["--version"], {
+-      cwd
+-    });
+-    let version = result.stdout.toString().trim();
+-    let parsed = semver.parse(version);
+-    return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: (parsed === null || parsed === void 0 ? void 0 : parsed.major) === undefined ? false : parsed.major >= 5
+-    };
+-  } catch (e) {
++  const name = ((_await$preferredPM = await preferredPM(cwd)) === null || _await$preferredPM === void 0 ? void 0 : _await$preferredPM.name) || "npm";
++  const version = await getPublishToolVersion(name, cwd);
++
++  if (name === "yarn" && semver.lt(version, "2.0.0")) {
++    // Yarn Classic doesn't do anything special when publishing, let's stick to the npm client in such a case
+     return {
+-      name: "pnpm",
+-      shouldAddNoGitChecks: false
++      name: "npm",
++      version: await getPublishToolVersion("npm", cwd)
+     };
+   }
++
++  return {
++    name,
++    version
++  };
+ }
+ 
+ async function getTokenIsRequired() {
+@@ -793,20 +793,32 @@ let getOtpCode = async twoFactorState => {
+   }
+ 
+   return askForOtpCode(twoFactorState);
++};
++
++const isOtpError = error => {
++  // The first case is no 2fa provided, the second is when the 2fa is wrong (timeout or wrong words)
++  return error.code === "EOTP" || error.code === "E401" && error.detail.includes("--otp=<code>");
+ }; // we have this so that we can do try a publish again after a publish without
+ // the call being wrapped in the npm request limit and causing the publishes to potentially never run
+ 
++
+ async function internalPublish(pkgName, opts, twoFactorState) {
+   let publishTool = await getPublishTool(opts.cwd);
+-  let publishFlags = opts.access ? ["--access", opts.access] : [];
++  let shouldHandleOtp = !isCI && (publishTool.name === "yarn" ? semver.gte(publishTool.version, "3.2.0-rc.8") : true);
++  let publishFlags = publishTool.name !== "yarn" ? ["--json"] : [];
++
++  if (opts.access) {
++    publishFlags.push("--access", opts.access);
++  }
++
+   publishFlags.push("--tag", opts.tag);
+ 
+-  if ((await twoFactorState.isRequired) && !isCI) {
++  if (shouldHandleOtp && (await twoFactorState.isRequired)) {
+     let otpCode = await getOtpCode(twoFactorState);
+     publishFlags.push("--otp", otpCode);
+   }
+ 
+-  if (publishTool.name === "pnpm" && publishTool.shouldAddNoGitChecks) {
++  if (publishTool.name === "pnpm" && semver.gte(publishTool.version, "5.0.0")) {
+     publishFlags.push("--no-git-checks");
+   } // Due to a super annoying issue in yarn, we have to manually override this env variable
+   // See: https://github.com/yarnpkg/yarn/issues/2935#issuecomment-355292633
+@@ -819,21 +831,35 @@ async function internalPublish(pkgName, opts, twoFactorState) {
+     code,
+     stdout,
+     stderr
+-  } = await spawn$1(publishTool.name, ["publish", opts.cwd, "--json", ...publishFlags], {
++  } = publishTool.name === "yarn" ? await spawn$1("yarn", ["npm", "publish", ...publishFlags], {
++    cwd: opts.cwd,
++    env: Object.assign({}, process.env, envOverride)
++  }) : await spawn$1(publishTool.name, ["publish", opts.cwd, ...publishFlags], {
+     env: Object.assign({}, process.env, envOverride)
+   });
+ 
+   if (code !== 0) {
+-    // NPM's --json output is included alongside the `prepublish` and `postpublish` output in terminal
++    // yarn berry doesn't support --json and we don't attempt to parse its output to a machine-readable format
++    if (publishTool.name === "yarn") {
++      const output = stdout.toString().trim().split("\n") // this filters out "unnamed" logs: https://yarnpkg.com/advanced/error-codes/#yn0000---unnamed
++      // this includes a list of packed files and the "summary output" like: "Failed with errors in 0s 75ms"
++      // those are not that interesting so we reduce the noise by dropping them
++      .filter(line => !/YN0000:/.test(line)).join("\n");
++      error(`an error occurred while publishing ${pkgName}:`, `\n${output}`);
++      return {
++        published: false
++      };
++    } // NPM's --json output is included alongside the `prepublish` and `postpublish` output in terminal
+     // We want to handle this as best we can but it has some struggles:
+     // - output of those lifecycle scripts can contain JSON
+     // - npm7 has switched to printing `--json` errors to stderr (https://github.com/npm/cli/commit/1dbf0f9bb26ba70f4c6d0a807701d7652c31d7d4)
+     // Note that the `--json` output is always printed at the end so this should work
++
++
+     let json = getLastJsonObjectFromString(stderr.toString()) || getLastJsonObjectFromString(stdout.toString());
+ 
+     if (json !== null && json !== void 0 && json.error) {
+-      // The first case is no 2fa provided, the second is when the 2fa is wrong (timeout or wrong words)
+-      if ((json.error.code === "EOTP" || json.error.code === "E401" && json.error.detail.includes("--otp=<code>")) && !isCI) {
++      if (shouldHandleOtp && isOtpError(json.error)) {
+         if (twoFactorState.token !== null) {
+           // the current otp code must be invalid since it errored
+           twoFactorState.token = null;
+diff --git a/package.json b/package.json
+index 0912d0f8fbf6f88c623ba4de0c87345947cde035..4ea6809033e063422e98cc3370685eb9b46847a2 100644
+--- a/package.json
++++ b/package.json
+@@ -57,7 +57,7 @@
+     "meow": "^6.0.0",
+     "outdent": "^0.5.0",
+     "p-limit": "^2.2.0",
+-    "preferred-pm": "^3.0.0",
++    "preferred-pm": "^3.0.3",
+     "resolve-from": "^5.0.0",
+     "semver": "^5.4.1",
+     "spawndamnit": "^2.0.0",
