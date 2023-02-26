@@ -4,7 +4,6 @@ pub(crate) fn dedent_raw<S>(raw: &[S]) -> Vec<String>
 where
     S: AsRef<str>,
 {
-    // Dedent the second line and later
     let mut level = usize::MAX / 2;
     for (i, elem) in raw.iter().enumerate() {
         let elem: &str = elem.as_ref();
@@ -26,8 +25,7 @@ where
         }
     }
     let level = level;
-    let mut dedented = raw
-        .iter()
+    raw.iter()
         .map(|elem| {
             let elem: &str = elem.as_ref();
             let mut buf = String::with_capacity(elem.len());
@@ -44,17 +42,7 @@ where
             buf.push_str(&elem[last..]);
             buf
         })
-        .collect::<Vec<_>>();
-
-    {
-        // Dedent the first line and remove it if it is empty
-        // First line indentation is independent of the later lines.
-        let elem = &dedented[0];
-        let pos = find_non_space(elem, 0);
-        let end_pos = pos + check_newline_at(elem, pos).unwrap_or(0);
-        dedented[0].drain(..end_pos);
-    }
-    dedented
+        .collect::<Vec<_>>()
 }
 
 fn find_newline(s: &str, from: usize) -> Option<usize> {
@@ -100,24 +88,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_remove_initial_spaces() {
-        assert_eq!(dedent_raw(&["    foo bar "]), ["foo bar "]);
+    fn test_do_not_remove_initial_spaces() {
+        assert_eq!(dedent_raw(&["    foo bar "]), ["    foo bar "]);
     }
     #[test]
-    fn test_remove_initial_tabs() {
-        assert_eq!(dedent_raw(&["\tfoo\tbar\t"]), ["foo\tbar\t"]);
+    fn test_do_not_remove_remove_initial_tabs() {
+        assert_eq!(dedent_raw(&["\tfoo\tbar\t"]), ["\tfoo\tbar\t"]);
     }
     #[test]
-    fn test_remove_the_first_line_if_it_is_empty() {
-        assert_eq!(dedent_raw(&["\nfoo bar "]), ["foo bar "]);
-    }
-    #[test]
-    fn test_remove_the_first_line_if_it_only_contains_spaces() {
-        assert_eq!(dedent_raw(&["    \nfoo bar "]), ["foo bar "]);
-    }
-    #[test]
-    fn test_remove_the_first_line_if_it_only_contains_tabs() {
-        assert_eq!(dedent_raw(&["\t\nfoo bar "]), ["foo bar "]);
+    fn test_keep_empty_line_first_line_case() {
+        assert_eq!(dedent_raw(&["\nfoo bar "]), ["\nfoo bar "]);
     }
     #[test]
     fn test_keep_the_last_newlines() {
@@ -125,11 +105,11 @@ mod tests {
     }
     #[test]
     fn test_keep_spaces_after_substitution() {
-        assert_eq!(dedent_raw(&["  foo", " bar"]), ["foo", " bar"]);
+        assert_eq!(dedent_raw(&["foo", " bar"]), ["foo", " bar"]);
     }
     #[test]
     fn test_keep_spaces_after_bar() {
-        assert_eq!(dedent_raw(&["  foo", " bar"]), ["foo", " bar"]);
+        assert_eq!(dedent_raw(&["foo", " bar"]), ["foo", " bar"]);
     }
     #[test]
     fn test_dedent_the_second_line_without_substitution() {

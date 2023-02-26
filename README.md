@@ -3,7 +3,7 @@
 ```javascript
 import { dedent } from "@qnighy/dedent";
 
-const mdDoc = dedent`
+const mdDoc = dedent`\
   ## Hello!
 
   - Plants
@@ -28,19 +28,20 @@ Therefore the result is easily predictable. Additionally, you can express **any 
 import { dedent } from "@qnighy/dedent";
 
 // End-of-line at the end
-const eol = dedent`
+const eol = dedent`\
   foo
   bar
 `;
 // No end-of-line at the end
-const noEol = dedent`
+const noEol = dedent`\
   foo
   bar`;
 
 // With all lines indented
-const withIndent = dedent`
-  ${""}  This line is indented with two spaces.
-    This line is also indented.
+const withIndent = dedent`\
+  \
+    This line (1st line) is indented with two spaces.
+    This line (2nd line) is also indented.
 `;
 ```
 
@@ -51,13 +52,22 @@ Tagged literal is also supported. You can write
 ```javascript
 import { dedent } from "@qnighy/dedent";
 
-const text = dedent(myTag)`
+const text = dedent(myTag)`\
   foo
   ${bar}
 `;
 ```
 
 for
+
+```javascript
+const text = myTag`\
+foo
+${bar}
+`;
+```
+
+which is often equivalent to:
 
 ```javascript
 const text = myTag`foo

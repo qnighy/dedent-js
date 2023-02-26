@@ -3,21 +3,21 @@ import { dedent } from "./index.js";
 
 describe("dedent", () => {
   it("dedents the template", () => {
-    expect(dedent`
+    expect(dedent`\
       foo
         bar
       baz
     `).toBe("foo\n  bar\nbaz\n");
   });
   it("regards escapes as part of a content", () => {
-    expect(dedent`
+    expect(dedent`\
       \x20 foo
         bar
         baz
     `).toBe("  foo\n  bar\n  baz\n");
   });
   it("regards substitutions as part of a content", () => {
-    expect(dedent`
+    expect(dedent`\
       ${" "} foo
         bar
         baz
@@ -25,11 +25,11 @@ describe("dedent", () => {
   });
 
   it("accepts other template tag", () => {
-    expect(dedent(String.raw)`
+    expect(dedent(String.raw)`\
       \x20 foo
         bar
         baz
-    `).toBe("\\x20 foo\n  bar\n  baz\n");
+    `).toBe("\\\n\\x20 foo\n  bar\n  baz\n");
   });
 
   it("Allows invalid escapes when tagged", () => {
@@ -46,7 +46,7 @@ describe("dedent", () => {
   it("gives a helpful message if used as a function", () => {
     const dedentWrong = dedent as typeof dedent & ((s: string) => string);
     expect(() =>
-      dedentWrong(`
+      dedentWrong(`\
         foo
           bar
         baz

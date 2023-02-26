@@ -16,13 +16,20 @@ export type TemplateTag<S extends any[], T> = (
  *
  * @example
  *   ```typescript
- *   const text = dedent`
+ *   const text = dedent`\
  *     foo
  *       bar
  *     baz
  *   `;
  *
  *   // Equivalent to:
+ *   const text = `\
+ *   foo
+ *     bar
+ *   baz
+ *   `;
+ *
+ *   // Which is in turn:
  *   const text = `foo
  *     bar
  *   baz

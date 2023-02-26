@@ -2,29 +2,23 @@ import { describe, expect, it } from "@jest/globals";
 import { dedentRaw } from "./dedentRaw.js";
 
 describe("dedentRaw", () => {
-  it("removes initial spaces", () => {
-    expect(dedentRaw(["    foo bar "])).toEqual(["foo bar "]);
+  it("does not remove initial spaces", () => {
+    expect(dedentRaw(["    foo bar "])).toEqual(["    foo bar "]);
   });
-  it("removes initial tabs", () => {
-    expect(dedentRaw(["\tfoo\tbar\t"])).toEqual(["foo\tbar\t"]);
+  it("does not remove initial tabs", () => {
+    expect(dedentRaw(["\tfoo\tbar\t"])).toEqual(["\tfoo\tbar\t"]);
   });
-  it("removes the first line if it is empty", () => {
-    expect(dedentRaw(["\nfoo bar "])).toEqual(["foo bar "]);
-  });
-  it("removes the first line if it only contains spaces", () => {
-    expect(dedentRaw(["    \nfoo bar "])).toEqual(["foo bar "]);
-  });
-  it("removes the first line if it only contains tabs", () => {
-    expect(dedentRaw(["\t\nfoo bar "])).toEqual(["foo bar "]);
+  it("keeps empty line (first line case)", () => {
+    expect(dedentRaw(["\nfoo bar "])).toEqual(["\nfoo bar "]);
   });
   it("keeps the last newlines", () => {
     expect(dedentRaw(["x\n\n\n"])).toEqual(["x\n\n\n"]);
   });
   it("keeps spaces after substitution", () => {
-    expect(dedentRaw(["  foo", " bar"])).toEqual(["foo", " bar"]);
+    expect(dedentRaw(["foo", " bar"])).toEqual(["foo", " bar"]);
   });
   it("keeps spaces after bar", () => {
-    expect(dedentRaw(["  foo", " bar"])).toEqual(["foo", " bar"]);
+    expect(dedentRaw(["foo", " bar"])).toEqual(["foo", " bar"]);
   });
   it("dedents the second line (without substitution)", () => {
     expect(dedentRaw(["foo\n  bar "])).toEqual(["foo\nbar "]);

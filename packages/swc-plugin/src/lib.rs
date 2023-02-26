@@ -348,12 +348,13 @@ mod test_basic_behavior {
         |_| as_folder(MainVisitor::new()),
         transform_dedent_calls,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -363,12 +364,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         transform_wrapping_dedent_calls,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(foo)`
+const text = dedent(foo)`\
   foo
   bar
 `;
 "#,
-        r#"const text = foo`foo
+        r#"const text = foo`\
+foo
 bar
 `;"#
     );
@@ -383,44 +385,44 @@ mod test_dedent_detection {
         Default::default(),
         |_| as_folder(MainVisitor::new()),
         ignore_other_template_literals,
-        r#"`
+        r#"`\
   foo
   bar
 `;
-foo`
+foo`\
   foo
   bar
 `;
-foo.bar`
+foo.bar`\
   foo
   bar
 `;
-foo(bar)`
+foo(bar)`\
   foo
   bar
 `;
-foo()`
+foo()`\
   foo
   bar
 `;
 "#,
-        r#"`
+        r#"`\
   foo
   bar
 `;
-foo`
+foo`\
   foo
   bar
 `;
-foo.bar`
+foo.bar`\
   foo
   bar
 `;
-foo(bar)`
+foo(bar)`\
   foo
   bar
 `;
-foo()`
+foo()`\
   foo
   bar
 `;"#
@@ -431,12 +433,13 @@ foo()`
         |_| as_folder(MainVisitor::new()),
         detect_renamed_imports,
         r#"import { dedent as m } from "@qnighy/dedent";
-const text = m`
+const text = m`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -446,12 +449,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         detect_string_imports,
         r#"import { "dedent" as dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -461,12 +465,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         detect_simple_namespace_imports,
         r#"import * as m from "@qnighy/dedent";
-const text = m.dedent`
+const text = m.dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -476,12 +481,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         detect_namespace_imports_with_simple_computed_member_access,
         r#"import * as m from "@qnighy/dedent";
-const text = m["dedent"]`
+const text = m["dedent"]`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -491,13 +497,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         ignore_namespace_imports_with_complex_computed_member_access,
         r#"import * as m from "@qnighy/dedent";
-const text = m[dedent]`
+const text = m[dedent]`\
   foo
   bar
 `;
 "#,
         r#"import * as m from "@qnighy/dedent";
-const text = m[dedent]`
+const text = m[dedent]`\
   foo
   bar
 `;"#
@@ -507,12 +513,12 @@ const text = m[dedent]`
         Default::default(),
         |_| as_folder(MainVisitor::new()),
         ignore_non_namespace_member_expression_as_a_tag,
-        r#"const text = foo.bar.baz`
+        r#"const text = foo.bar.baz`\
   foo
   bar
 `;
 "#,
-        r#"const text = foo.bar.baz`
+        r#"const text = foo.bar.baz`\
   foo
   bar
 `;"#
@@ -522,12 +528,12 @@ const text = m[dedent]`
         Default::default(),
         |_| as_folder(MainVisitor::new()),
         ignore_global_dedent,
-        r#"const text = dedent`
+        r#"const text = dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = dedent`
+        r#"const text = dedent`\
   foo
   bar
 `;"#
@@ -538,13 +544,13 @@ const text = m[dedent]`
         |_| as_folder(MainVisitor::new()),
         ignore_other_imports,
         r#"import { dedentRaw as dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 "#,
         r#"import { dedentRaw as dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;"#
@@ -561,13 +567,13 @@ mod test_escape_handling {
         |_| as_folder(MainVisitor::new()),
         skip_transformation_if_there_is_an_invalid_escape_in_the_direct_form,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar\9
 `;
 "#,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar\9
 `;"#
@@ -578,12 +584,13 @@ const text = dedent`
         |_| as_folder(MainVisitor::new()),
         transform_the_code_successfully_even_if_there_is_an_invalid_escape_in_the_wrapper_form,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(foo)`
+const text = dedent(foo)`\
   foo
   bar\9
 `;
 "#,
-        r#"const text = foo`foo
+        r#"const text = foo`\
+foo
 bar\9
 `;"#
     );
@@ -599,13 +606,13 @@ mod test_parsing_wrapped_expressions {
         |_| as_folder(MainVisitor::new()),
         ignore_wrapping_dedent_calls_with_too_few_arguments,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent()`
+const text = dedent()`\
   foo
   bar
 `;
 "#,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent()`
+const text = dedent()`\
   foo
   bar
 `;"#
@@ -616,13 +623,13 @@ const text = dedent()`
         |_| as_folder(MainVisitor::new()),
         ignore_wrapping_dedent_calls_with_too_many_arguments,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(foo, bar)`
+const text = dedent(foo, bar)`\
   foo
   bar
 `;
 "#,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(foo, bar)`
+const text = dedent(foo, bar)`\
   foo
   bar
 `;"#
@@ -633,13 +640,13 @@ const text = dedent(foo, bar)`
         |_| as_folder(MainVisitor::new()),
         ignore_wrapping_dedent_calls_with_spreads,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(...foo)`
+const text = dedent(...foo)`\
   foo
   bar
 `;
 "#,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(...foo)`
+const text = dedent(...foo)`\
   foo
   bar
 `;"#
@@ -656,12 +663,13 @@ mod test_wrapped_functions_this_binding {
         |_| as_folder(MainVisitor::new()),
         transform_member_expression_with_as_value_wrapper,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent(foo.bar)`
+const text = dedent(foo.bar)`\
   foo
   bar
 `;
 "#,
-        r#"const text = (0, foo.bar)`foo
+        r#"const text = (0, foo.bar)`\
+foo
 bar
 `;"#
     );
@@ -677,12 +685,13 @@ mod test_import_removal {
         |_| as_folder(MainVisitor::new()),
         remove_imports_in_the_simplest_case,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -692,12 +701,13 @@ bar
         |_| as_folder(MainVisitor::new()),
         remove_namespace_imports_as_well,
         r#"import * as m from "@qnighy/dedent";
-const text = m.dedent`
+const text = m.dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text = `foo
+        r#"const text = `\
+foo
 bar
 `;"#
     );
@@ -707,19 +717,21 @@ bar
         |_| as_folder(MainVisitor::new()),
         remove_imports_even_if_there_are_multiple_uses,
         r#"import { dedent } from "@qnighy/dedent";
-const text1 = dedent`
+const text1 = dedent`\
   foo
   bar
 `;
-const text2 = dedent`
+const text2 = dedent`\
   foo
   bar
 `;
 "#,
-        r#"const text1 = `foo
+        r#"const text1 = `\
+foo
 bar
 `;
-const text2 = `foo
+const text2 = `\
+foo
 bar
 `;"#
     );
@@ -729,13 +741,14 @@ bar
         |_| as_folder(MainVisitor::new()),
         remove_only_the_import_specifier_if_other_imports_are_in_use,
         r#"import { dedent, dedentRaw } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 "#,
         r#"import { dedentRaw } from "@qnighy/dedent";
-const text = `foo
+const text = `\
+foo
 bar
 `;"#
     );
@@ -747,7 +760,7 @@ bar
         r#"import { dedent } from "@qnighy/dedent";
 import { dedent as dedent2 } from "@qnighy/dedent";
 import { dedent as dedent3 } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
@@ -755,7 +768,8 @@ dedent3;
 "#,
         r#"import { dedent as dedent2 } from "@qnighy/dedent";
 import { dedent as dedent3 } from "@qnighy/dedent";
-const text = `foo
+const text = `\
+foo
 bar
 `;
 dedent3;"#
@@ -766,14 +780,15 @@ dedent3;"#
         |_| as_folder(MainVisitor::new()),
         dont_remove_imports_if_there_are_other_non_removable_uses,
         r#"import { dedent } from "@qnighy/dedent";
-const text = dedent`
+const text = dedent`\
   foo
   bar
 `;
 dedent;
 "#,
         r#"import { dedent } from "@qnighy/dedent";
-const text = `foo
+const text = `\
+foo
 bar
 `;
 dedent;"#
@@ -784,14 +799,15 @@ dedent;"#
         |_| as_folder(MainVisitor::new()),
         dont_remove_namespace_imports_if_there_are_other_non_removable_uses,
         r#"import * as m from "@qnighy/dedent";
-const text = m.dedent`
+const text = m.dedent`\
   foo
   bar
 `;
 m.dedent;
 "#,
         r#"import * as m from "@qnighy/dedent";
-const text = `foo
+const text = `\
+foo
 bar
 `;
 m.dedent;"#
