@@ -1,0 +1,28 @@
+name: build and test (Rust)
+
+on:
+  push:
+  pull_request:
+    paths:
+    - 'packages/swc-plugin/**'
+    - 'Cargo.toml'
+    - 'Cargo.lock'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+        target: wasm32-unknown-unknown
+    - name: Build
+      run: cargo build -p qnighy-swc-plugin-dedent --target wasm32-unknown-unknown
+    - name: Run tests
+      run: cargo test --all --locked
+    - name: Lint
+      run: cargo clippy --all --locked -- -D warnings
+    - name: Check formatting
+      run: cargo fmt --all --check
