@@ -2305,7 +2305,7 @@ __metadata:
     "@babel/preset-typescript": ^7.21.0
     "@babel/types": ^7.21.2
     "@jest/globals": ^29.4.3
-    "@qnighy/dedent": "workspace:^0.1.0"
+    "@qnighy/dedent": "workspace:^0.1.1"
     "@types/babel__core": ^7.20.0
     "@types/eslint": ^8.21.1
     "@types/node": ^18.14.1
@@ -2326,7 +2326,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@qnighy/dedent@workspace:^0.1.0, @qnighy/dedent@workspace:packages/dedent":
+"@qnighy/dedent@workspace:^0.1.1, @qnighy/dedent@workspace:packages/dedent":
   version: 0.0.0-use.local
   resolution: "@qnighy/dedent@workspace:packages/dedent"
   dependencies:
