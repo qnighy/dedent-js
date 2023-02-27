@@ -1,6 +1,6 @@
 {
   "name": "@qnighy/babel-plugin-dedent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optimization plugin for @qnighy/dedent",
   "keywords": [
     "babel-plugin"
@@ -45,7 +45,7 @@
     "tsc": "tsc --build"
   },
   "dependencies": {
-    "@qnighy/dedent": "workspace:^0.1.0"
+    "@qnighy/dedent": "workspace:^0.1.1"
   },
   "peerDependencies": {
     "@babel/core": "^7.0.0"
