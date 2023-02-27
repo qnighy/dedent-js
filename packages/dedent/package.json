@@ -30,6 +30,7 @@
     "src/**/*",
     "dist/**/*",
     "cjs/dist/**/*",
+    "cjs/package.json",
     "!*.test.ts",
     "!*.tsbuildinfo"
   ],
