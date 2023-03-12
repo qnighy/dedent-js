@@ -109,7 +109,7 @@ impl VisitMut for TransformVisitor {
             return;
         };
         let ttpl = n.take().tagged_tpl().unwrap();
-        let mut tpl = ttpl.tpl;
+        let mut tpl = *ttpl.tpl;
         for ((elem, new_quasi), cooked) in tpl.quasis.iter_mut().zip(&quasis).zip(&cooked) {
             elem.raw = Atom::new(new_quasi.as_str());
             elem.cooked = cooked.as_ref().map(|cooked| Atom::new(cooked.as_str()));
