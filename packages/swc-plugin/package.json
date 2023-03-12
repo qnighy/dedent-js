@@ -1,6 +1,6 @@
 {
   "name": "@qnighy/swc-plugin-dedent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optimization plugin for @qnighy/dedent",
   "keywords": [
     "swc-plugin"
