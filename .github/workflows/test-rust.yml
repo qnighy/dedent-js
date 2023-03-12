@@ -2,6 +2,8 @@ name: build and test (Rust)
 
 on:
   push:
+    branches:
+    - main
   pull_request:
     paths:
     - 'packages/swc-plugin/**'
