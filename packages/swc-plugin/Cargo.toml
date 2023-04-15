@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 serde = "1.0.155"
-swc_core = { version = "0.69.0", features = ["ecma_plugin_transform"] }
+swc_core = { version = "0.75.22", features = ["ecma_plugin_transform"] }
