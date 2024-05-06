@@ -22,12 +22,13 @@ async function main() {
     new URL("./README.md", import.meta.url).pathname,
   );
 
-  const packageJsonPath = new URL("../packages/dedent/package.json", import.meta.url).pathname;
+  const packageJsonPath =
+    new URL("../packages/dedent/package.json", import.meta.url).pathname;
   const packageJson = JSON.parse(await Deno.readTextFile(packageJsonPath));
 
   const denoJsonPath = new URL("./deno.json", import.meta.url).pathname;
   const denoJson = JSON.parse(await Deno.readTextFile(denoJsonPath));
-  denoJson.version = packageJson.version
+  denoJson.version = packageJson.version;
 
   await Deno.writeTextFile(denoJsonPath, JSON.stringify(denoJson, null, 2));
 
