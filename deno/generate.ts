@@ -22,6 +22,11 @@ async function main() {
     new URL("./README.md", import.meta.url).pathname,
   );
 
+  await Deno.copyFile(
+    new URL("../packages/dedent/CHANGELOG.md", import.meta.url).pathname,
+    new URL("./CHANGELOG.md", import.meta.url).pathname,
+  );
+
   const packageJsonPath =
     new URL("../packages/dedent/package.json", import.meta.url).pathname;
   const packageJson = JSON.parse(await Deno.readTextFile(packageJsonPath));
@@ -37,6 +42,7 @@ async function main() {
       "fmt",
       ...files.map((file) => new URL(`./${file}`, import.meta.url).pathname),
       new URL("./README.md", import.meta.url).pathname,
+      new URL("./CHANGELOG.md", import.meta.url).pathname,
       new URL("./deno.json", import.meta.url).pathname,
     ],
     stdin: "null",
