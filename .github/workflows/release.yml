@@ -33,6 +33,6 @@ jobs:
       - name: Create Release Pull Request
         uses: changesets/action@v1
         with:
-          version: yarn changeset version && cd deno && deno task generate && cd ..
+          version: yarn version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

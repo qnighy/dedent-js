@@ -13,12 +13,14 @@
     "fmt:all:check": "yarn fmt:js:check && cargo fmt --all --check",
     "fmt:js": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run fmt",
     "fmt:js:check": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run fmt:check",
+    "generate:deno": "cd deno && deno task generate",
     "lint:all": "yarn lint:js && cargo clippy --all",
     "lint:js": "yarn build:js && yarn lint:js:nobuild",
     "lint:js:nobuild": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run lint",
     "test:all": "yarn test:js && cargo test --all",
     "test:js": "yarn build:js && yarn test:js:nobuild",
-    "test:js:nobuild": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run test"
+    "test:js:nobuild": "yarn workspaces foreach -p --exclude @qnighy/swc-plugin-dedent run test",
+    "version": "yarn changeset version && yarn generate:deno"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.0",
