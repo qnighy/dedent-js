@@ -1,6 +1,6 @@
 {
   "name": "@qnighy/dedent",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "JS multi-line literal done right",
   "keywords": [
     "dedent",
