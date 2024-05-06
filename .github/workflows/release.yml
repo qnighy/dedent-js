@@ -23,12 +23,16 @@ jobs:
         with:
           node-version: 18
 
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
       - name: Install Dependencies
         run: yarn
 
       - name: Create Release Pull Request
         uses: changesets/action@v1
         with:
-          version: yarn changeset version
+          version: yarn changeset version && cd deno && deno task generate && cd ..
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
