@@ -14,11 +14,11 @@ export function cook(raw: string): string {
           return "\0";
         } else if (/[89]/.test(ch)) {
           throw new SyntaxError(
-            "\\8 and \\9 are not allowed in template strings."
+            "\\8 and \\9 are not allowed in template strings.",
           );
         } else {
           throw new SyntaxError(
-            "Octal escape sequences are not allowed in template strings."
+            "Octal escape sequences are not allowed in template strings.",
           );
         }
       } else if (ch === "x") {
@@ -46,7 +46,7 @@ export function cook(raw: string): string {
         return "";
       }
       return ch;
-    }
+    },
   );
 }
 
