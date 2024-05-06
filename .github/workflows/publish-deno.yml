@@ -17,3 +17,4 @@ jobs:
         with:
           deno-version: v1.x
       - run: deno publish
+        working-directory: deno
