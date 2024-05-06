@@ -1,5 +1,11 @@
 # @qnighy/dedent
 
+## 0.1.2
+
+### Patch Changes
+
+- d9c3cce: Add support for Deno and JSR
+
 ## 0.1.1
 
 ### Patch Changes
