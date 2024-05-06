@@ -1,5 +1,11 @@
 # @qnighy/dedent
 
+## 0.1.3
+
+### Patch Changes
+
+- 047721b: Fix Deno publishing
+
 ## 0.1.2
 
 ### Patch Changes
