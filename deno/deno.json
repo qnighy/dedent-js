@@ -1,6 +1,6 @@
 {
   "name": "@qnighy/dedent",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "tasks": {
     "generate": "deno run --allow-read --allow-write --allow-run generate.ts"
   },
